@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block titulo %}Privacidad & Términos{% endblock %}
+
+{% block contenido %}
+<div class="row justify-content-center">
+<div class="col-lg-10">
+
+    <h1 class="h3 mb-4">Privacidad & Términos</h1>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs" id="legalTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button
+        class="nav-link {% if active_tab == 'privacidad' %}active{% endif %}"
+        id="tab-privacidad"
+        data-bs-toggle="tab"
+        data-bs-target="#panel-privacidad"
+        type="button" role="tab"
+        aria-controls="panel-privacidad"
+        aria-selected="{% if active_tab == 'privacidad' %}true{% else %}false{% endif %}">
+        Política de Privacidad
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button
+        class="nav-link {% if active_tab == 'terminos' %}active{% endif %}"
+        id="tab-terminos"
+        data-bs-toggle="tab"
+        data-bs-target="#panel-terminos"
+        type="button" role="tab"
+        aria-controls="panel-terminos"
+        aria-selected="{% if active_tab == 'terminos' %}true{% else %}false{% endif %}">
+        Términos y Condiciones
+        </button>
+    </li>
+    </ul>
+
+    <!-- Panels -->
+    <div class="tab-content border border-top-0 p-4 rounded-bottom shadow-sm">
+    <!-- PRIVACIDAD -->
+    <div
+        class="tab-pane fade {% if active_tab == 'privacidad' %}show active{% endif %}"
+        id="panel-privacidad" role="tabpanel" aria-labelledby="tab-privacidad">
+        
+        <p class="text-muted small mb-4">Última actualización: {{ today|date:"d/m/Y" }}</p>
+
+        <h2 class="h5">1. Introducción</h2>
+        <p>
+        En MascotaConectada valoramos tu privacidad. Esta política describe qué datos recopilamos,
+        para qué los utilizamos y tus derechos sobre esa información.
+        </p>
+
+        <h3 class="h6 mt-4">2. Datos que recopilamos</h3>
+        <ul>
+        <li>Datos de cuenta: nombre, correo electrónico, contraseña (encriptada).</li>
+        <li>Datos de uso: interacción con la plataforma y funcionalidades.</li>
+        <li>Datos opcionales de mascota: nombre, especie, historial, etc.</li>
+        </ul>
+
+        <h3 class="h6 mt-4">3. Finalidades</h3>
+        <ul>
+        <li>Proveer y mejorar el servicio (historial médico, agenda, clínicas cercanas).</li>
+        <li>Notificaciones transaccionales (p. ej., recordatorios de citas).</li>
+        <li>Soporte y seguridad.</li>
+        </ul>
+
+        <h3 class="h6 mt-4">4. Conservación y seguridad</h3>
+        <p>
+        Conservamos los datos el tiempo necesario para la prestación del servicio y cumplimientos legales.
+        Implementamos medidas técnicas y organizativas razonables para proteger tu información.
+        </p>
+
+        <h3 class="h6 mt-4">5. Tus derechos</h3>
+        <ul>
+        <li>Acceso, rectificación, actualización y eliminación de datos.</li>
+        <li>Oposición y limitación de tratamiento cuando corresponda.</li>
+        <li>Portabilidad de datos según normativa aplicable.</li>
+        </ul>
+
+        <h3 class="h6 mt-4">6. Contacto</h3>
+        <p>
+        Si tienes dudas sobre privacidad, contáctanos en
+        <a href="{% url 'contacto' %}">Contacto/Soporte</a>.
+        </p>
+    </div>
+
+    <!-- TÉRMINOS -->
+    <div
+        class="tab-pane fade {% if active_tab == 'terminos' %}show active{% endif %}"
+        id="panel-terminos" role="tabpanel" aria-labelledby="tab-terminos">
+        
+        <p class="text-muted small mb-4">Última actualización: {{ today|date:"d/m/Y" }}</p>
+
+        <h2 class="h5">1. Aceptación</h2>
+        <p>
+        Al usar MascotaConectada aceptas estos Términos y Condiciones. Si no estuvieras de acuerdo,
+        por favor no utilices la plataforma.
+        </p>
+
+        <h3 class="h6 mt-4">2. Uso del servicio</h3>
+        <ul>
+        <li>Proporcionar información veraz y actualizada.</li>
+        <li>No realizar actividades ilícitas o que afecten a terceros.</li>
+        <li>Respetar la propiedad intelectual y las políticas de la plataforma.</li>
+        </ul>
+
+        <h3 class="h6 mt-4">3. Cuentas y seguridad</h3>
+        <p>
+        Eres responsable de tu cuenta y credenciales. Notifícanos ante cualquier uso no autorizado.
+        </p>
+
+        <h3 class="h6 mt-4">4. Limitación de responsabilidad</h3>
+        <p>
+        El servicio se ofrece “tal cual”. En la medida permitida por la ley, no asumimos
+        responsabilidad por daños indirectos o pérdidas derivadas del uso.
+        </p>
+
+        <h3 class="h6 mt-4">5. Cambios</h3>
+        <p>
+        Podemos actualizar estos términos. Continuar usando el servicio implica aceptar las
+        modificaciones publicadas en esta página.
+        </p>
+
+        <h3 class="h6 mt-4">6. Contacto</h3>
+        The 
+        <p>
+        Para consultas legales, utiliza <a href="{% url 'contacto' %}">Contacto/Soporte</a>.
+        </p>
+    </div>
+    </div>
+
+</div>
+</div>
+{% endblock %}
