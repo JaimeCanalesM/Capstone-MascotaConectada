@@ -1,0 +1,32 @@
+/* 1. ESTILO DE LA BARRA LATERAL (Modal Login) */
+#loginModal .modal-dialog {
+    position: fixed;
+    right: 0;
+    margin: 0;
+    height: 100vh; 
+    max-width: 450px; 
+    width: 100%;
+    transform: translate3d(0, 0, 0); 
+}
+
+#loginModal .modal-content {
+    height: 100%;
+}
+
+/* 2. COLOR TURQUESA PARA EL NAVBAR */
+.bg-turquesa {
+    /* CLAVE: !important para forzar el color sobre Bootstrap */
+    background-color: #55c7b7 !important; 
+}
+
+/* 3. FUERZA EL FONDO NEGRO DEL FOOTER (Diseño de natvar.png) */
+.bg-dark {
+    /* Usamos el color de bg-dark estándar */
+    background-color: #55c7b7 !important; 
+}
+
+/* 4. CLASE PARA EL TÍTULO (Para ser usado en index.html) */
+.text-turquesa {
+    color: #55c7b7 !important; 
+}
+
