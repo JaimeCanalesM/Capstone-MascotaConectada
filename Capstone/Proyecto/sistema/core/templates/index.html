@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block titulo %}
+Inicio · MascotaConectada
+{% endblock %}
+
+{% block contenido %}
+<div class="text-center py-5">
+<h1 class="display-4 fw-bold text-primary">Bienvenido a MascotaConectada 🐾</h1>
+<p class="lead text-muted">
+    La plataforma donde puedes llevar el control de tus mascotas: historial médico, agenda y clínicas cercanas.
+</p>
+<div class="mt-4">
+    <a href="{}" class="btn btn-success btn-lg me-2">
+    <i class="bi bi-journal-plus"></i> Registrar mascota
+    </a>
+    <a href="{}" class="btn btn-outline-primary btn-lg">
+    <i class="bi bi-geo-alt"></i> Buscar clínicas
+    </a>
+</div>
+</div>
+
+<div class="row text-center mt-5">
+<div class="col-md-4 mb-4">
+    <div class="card shadow-sm h-100">
+    <div class="card-body">
+        <div class="fs-1 text-success mb-3">📒</div>
+        <h5 class="card-title">Historial Médico</h5>
+        <p class="card-text">Registra vacunas, controles y notas médicas en un solo lugar.</p>
+    </div>
+    </div>
+</div>
+<div class="col-md-4 mb-4">
+    <div class="card shadow-sm h-100">
+    <div class="card-body">
+        <div class="fs-1 text-info mb-3">📅</div>
+        <h5 class="card-title">Agenda Médica</h5>
+        <p class="card-text">Programa citas y recibe recordatorios automáticos.</p>
+    </div>
+    </div>
+</div>
+<div class="col-md-4 mb-4">
+    <div class="card shadow-sm h-100">
+    <div class="card-body">
+        <div class="fs-1 text-danger mb-3">📍</div>
+        <h5 class="card-title">Geolocalización</h5>
+        <p class="card-text">Encuentra veterinarias y clínicas cercanas fácilmente.</p>
+    </div>
+    </div>
+</div>
+</div>
+{% endblock %}

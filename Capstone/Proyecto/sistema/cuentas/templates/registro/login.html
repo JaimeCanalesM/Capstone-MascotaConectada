@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block titulo %}Login{% endblock %}
+
+{% block contenido %}
+<div class="row justify-content-center">
+<div class="col-md-6 col-lg-5">
+    <h1 class="h4 mb-4 text-center">Iniciar sesión</h1>
+
+    {% if form.errors %}
+    <div class="alert alert-danger">
+        Usuario o contraseña incorrectos. Inténtalo de nuevo.
+    </div>
+    {% endif %}
+
+    <form method="post" class="card card-body shadow-sm border-0">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="id_username" class="form-label">Usuario</label>
+        {{ form.username }}
+    </div>
+    <div class="mb-3">
+        <label for="id_password" class="form-label">Contraseña</label>
+        {{ form.password }}
+    </div>
+    <button type="submit" class="btn btn-primary w-100">
+        <i class="bi bi-box-arrow-in-right"></i> Ingresar
+    </button>
+    </form>
+
+    <div class="mt-3 text-center">
+    <p class="mb-1 small">
+        ¿No tienes cuenta? <a href="{% url 'registro' %}">Regístrate</a>
+    </p>
+    <p class="small">
+        <a href="">¿Olvidaste tu contraseña?</a>
+    </p>
+    </div>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block titulo %}Contacto{% endblock %}
+
+{% block contenido %}
+<div class="row justify-content-center">
+<div class="col-lg-8">
+    <h1 class="h3 mb-3">Contacto / Soporte</h1>
+    <p class="text-muted mb-4">
+    ¿Tienes dudas o sugerencias? Escríbenos y te responderemos a la brevedad.
+    </p>
+
+    {# Mensajes de Django (éxito / error) #}
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} mb-2" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        {% csrf_token %}
+
+        {# Errores generales del formulario #}
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label" for="{{ form.nombre.id_for_label }}">Nombre</label>
+            {{ form.nombre }}
+            {% if form.nombre.errors %}
+            <div class="invalid-feedback d-block">{{ form.nombre.errors|striptags }}</div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label" for="{{ form.email.id_for_label }}">Email</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+            <div class="invalid-feedback d-block">{{ form.email.errors|striptags }}</div>
+            {% endif %}
+        </div>
+
+        <div class="col-12">
+            <label class="form-label" for="{{ form.asunto.id_for_label }}">Asunto</label>
+            {{ form.asunto }}
+            {% if form.asunto.errors %}
+            <div class="invalid-feedback d-block">{{ form.asunto.errors|striptags }}</div>
+            {% endif %}
+        </div>
+
+        <div class="col-12">
+            <label class="form-label" for="{{ form.mensaje.id_for_label }}">Mensaje</label>
+            {{ form.mensaje }}
+            {% if form.mensaje.errors %}
+            <div class="invalid-feedback d-block">{{ form.mensaje.errors|striptags }}</div>
+            {% endif %}
+        </div>
+
+        <div class="col-12">
+            <div class="form-check">
+            {{ form.acepto }}
+            <label class="form-check-label" for="{{ form.acepto.id_for_label }}">
+                Acepto ser contactado(a) a este correo
+            </label>
+            </div>
+            {% if form.acepto.errors %}
+            <div class="invalid-feedback d-block">{{ form.acepto.errors|striptags }}</div>
+            {% endif %}
+        </div>
+        </div>
+
+        <div class="d-grid d-sm-flex gap-2 mt-4">
+        <button class="btn btn-primary" type="submit">
+            <i class="bi bi-send"></i> Enviar
+        </button>
+        <a class="btn btn-outline-secondary" href="{% url 'home' %}">
+            Cancelar
+        </a>
+        </div>
+    </div>
+    </form>
+
+    <div class="mt-4 small text-muted">
+      * Tus datos se procesan según nuestra <a href="{% url 'privacidad_terminos' %}">Política de Privacidad y términos</a>.
+    </div>
+</div>
+</div>
+{% endblock %}
