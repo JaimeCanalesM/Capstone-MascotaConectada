@@ -1,52 +1,106 @@
 {% extends "base.html" %}
+{% load static %}
+{% block titulo %}Inicio — MascotaConectada{% endblock %}
 
-{% block titulo %}
-Inicio · MascotaConectada
-{% endblock %}
 
 {% block contenido %}
-<div class="text-center py-5">
-<h1 class="display-4 fw-bold text-primary">Bienvenido a MascotaConectada 🐾</h1>
-<p class="lead text-muted">
-    La plataforma donde puedes llevar el control de tus mascotas: historial médico, agenda y clínicas cercanas.
-</p>
-<div class="mt-4">
-    <a href="{}" class="btn btn-success btn-lg me-2">
-    <i class="bi bi-journal-plus"></i> Registrar mascota
-    </a>
-    <a href="{}" class="btn btn-outline-primary btn-lg">
-    <i class="bi bi-geo-alt"></i> Buscar clínicas
-    </a>
-</div>
-</div>
 
-<div class="row text-center mt-5">
-<div class="col-md-4 mb-4">
-    <div class="card shadow-sm h-100">
-    <div class="card-body">
-        <div class="fs-1 text-success mb-3">📒</div>
-        <h5 class="card-title">Historial Médico</h5>
-        <p class="card-text">Registra vacunas, controles y notas médicas en un solo lugar.</p>
+<!-- HERO -->
+<section class="py-5">
+  <div class="row align-items-center">
+    <div class="col-lg-6">
+      <h1 class="display-5 fw-bold">
+        Tu mascota, <span class="text-primary">conectada</span> a su salud
+      </h1>
+      <p class="lead text-muted mt-3">
+        Agenda citas, guarda historial médico, encuentra clínicas cercanas y recibe recordatorios — todo en un solo lugar.
+      </p>
+
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <!-- Ajusta los nombres de URL según tus rutas -->
+        <a href="{% url 'mascota:crear' %}" class="btn btn-primary btn-lg">
+          <i class="bi bi-journal-plus"></i> Registrar Mascota
+        </a>
+        <a href="{% url 'clinicas:lista' %}" class="btn btn-outline-primary btn-lg">
+          <i class="bi bi-geo-alt"></i> Buscar Clínicas
+        </a>
+        {% if not request.user.is_authenticated %}
+          <a href="{% url 'cuentas:registro' %}" class="btn btn-outline-secondary btn-lg">
+            <i class="bi bi-person-plus"></i> Crear Cuenta
+          </a>
+        {% endif %}
+      </div>
     </div>
+    <div class="col-lg-6 mt-4 mt-lg-0">
+      <img src="{% static 'img/hero-pets.svg' %}" alt="Ilustración mascotas" class="img-fluid">
     </div>
-</div>
-<div class="col-md-4 mb-4">
-    <div class="card shadow-sm h-100">
-    <div class="card-body">
-        <div class="fs-1 text-info mb-3">📅</div>
-        <h5 class="card-title">Agenda Médica</h5>
-        <p class="card-text">Programa citas y recibe recordatorios automáticos.</p>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="py-5 border-top">
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-3">
+            <i class="bi bi-calendar2-check fs-2 me-2"></i>
+            <h5 class="card-title mb-0">Agenda Inteligente</h5>
+          </div>
+          <p class="card-text text-muted">
+            Crea, reprograma y confirma citas con tu clínica de confianza. Recibe recordatorios para que nada se pase.
+          </p>
+          <a href="{% url 'citas:lista' %}" class="stretched-link">Ver mis citas</a>
+        </div>
+      </div>
     </div>
+
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-3">
+            <i class="bi bi-clipboard2-pulse fs-2 me-2"></i>
+            <h5 class="card-title mb-0">Historial Médico</h5>
+          </div>
+          <p class="card-text text-muted">
+            Registra vacunas, alergias, tratamientos y controles. Toda la información, ordenada y disponible.
+          </p>
+          <a href="{% url 'mascota:lista' %}" class="stretched-link">Ir a mis mascotas</a>
+        </div>
+      </div>
     </div>
-</div>
-<div class="col-md-4 mb-4">
-    <div class="card shadow-sm h-100">
-    <div class="card-body">
-        <div class="fs-1 text-danger mb-3">📍</div>
-        <h5 class="card-title">Geolocalización</h5>
-        <p class="card-text">Encuentra veterinarias y clínicas cercanas fácilmente.</p>
+
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-3">
+            <i class="bi bi-geo-alt fs-2 me-2"></i>
+            <h5 class="card-title mb-0">Clínicas Cercanas</h5>
+          </div>
+          <p class="card-text text-muted">
+            Encuentra y compara clínicas veterinarias según ubicación, horarios y servicios ofrecidos.
+          </p>
+          <a href="{% url 'clinicas:lista' %}" class="stretched-link">Explorar clínicas</a>
+        </div>
+      </div>
     </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="py-5 text-center">
+  <div class="p-5 bg-light rounded-3">
+    <h2 class="fw-bold mb-3">Listo para empezar</h2>
+    <p class="text-muted mb-4">Toma el control del cuidado de tu mascota con unos pocos clics.</p>
+    <div class="d-flex justify-content-center gap-2">
+      <a href="{% url 'mascota:crear' %}" class="btn btn-primary btn-lg">
+        <i class="bi bi-plus-circle"></i> Añadir a mi mascota
+      </a>
+      <a href="{% url 'core:contacto' %}" class="btn btn-outline-secondary btn-lg">
+        <i class="bi bi-envelope"></i> ¿Dudas? Escríbenos
+      </a>
     </div>
-</div>
-</div>
+  </div>
+</section>
+
 {% endblock %}

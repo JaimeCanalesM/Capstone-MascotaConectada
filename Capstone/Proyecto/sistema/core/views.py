@@ -6,14 +6,14 @@ from django.core.mail import send_mail, BadHeaderError
 from django.shortcuts import render, redirect
 
 # Create your views here.
-def home(request):
-    return render(request, 'index.html')
+def index(request):
+    return render(request, "index.html")
 
 def nosotros(request):
-    return render(request, 'nosotros.html')
-
-def privacidad_terminos(request):
-    return render(request, 'privacidad_terminos.html')
+    return render(request, "core/nosotros.html")
 
 def contacto(request):
-    return render(request, 'contacto.html')
+    return render(request, "core/contacto.html")
+
+def privacidad_terminos(request):
+    return render(request, "core/privacidad_terminos.html")

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+{% block titulo %}Crear cuenta{% endblock %}
+{% block contenido %}
+<div class="container py-5" style="max-width:480px;">
+  <h1 class="h3 mb-4">Crear cuenta</h1>
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <div class="mb-3">
+      <label class="form-label" for="{{ form.username.id_for_label }}">Usuario</label>
+      {{ form.username }}
+      {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors }}</div>{% endif %}
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="{{ form.password1.id_for_label }}">Contraseña</label>
+      {{ form.password1 }}
+      {% if form.password1.errors %}<div class="text-danger small">{{ form.password1.errors }}</div>{% endif %}
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="{{ form.password2.id_for_label }}">Confirma tu contraseña</label>
+      {{ form.password2 }}
+      {% if form.password2.errors %}<div class="text-danger small">{{ form.password2.errors }}</div>{% endif %}
+    </div>
+
+    <button class="btn btn-success w-100" type="submit">Registrarme</button>
+  </form>
+
+  <hr class="my-4">
+  <p class="text-muted mb-0">
+    ¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión aquí</a>.
+  </p>
+</div>
+{% endblock %}

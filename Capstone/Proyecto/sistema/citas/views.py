@@ -3,7 +3,7 @@ from django.http import HttpResponse
 
 # Create your views here.
 def lista_citas(request):
-    return render(request, 'citas/lista_citas.html')
+    return render(request, "citas/lista.html")
 
 def forma_cita(request):
     return render(request, 'citas/forma_cita.html')
