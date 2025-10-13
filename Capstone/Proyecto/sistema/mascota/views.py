@@ -14,5 +14,9 @@ def formas(request):
 def confirmar_eliminacion(request):
     return render(request, 'mascota/confirmar_eliminacion.html')
 
+def crear_mascota(request):
+    # cuando tengas ModelForm, aquí procesas POST/GET
+    return render(request, "mascota/crear.html")
+
 
 

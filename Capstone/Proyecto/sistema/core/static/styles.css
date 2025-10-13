@@ -30,3 +30,61 @@
     color: #55c7b7 !important; 
 }
 
+/* ===== Panel lateral de autenticación (derecha) ===== */
+.auth-wrapper {
+position: relative;
+  min-height: calc(100vh - 70px); /* ajusta si tu navbar es más alta/baja */
+}
+
+.auth-hero {
+position: absolute;
+inset: 0;
+padding-right: 420px; /* espacio para el panel derecho */
+display: flex;
+align-items: center;
+justify-content: center;
+background: linear-gradient(135deg, #f8fafc, #e8f3ff);
+}
+
+.auth-hero-inner {
+max-width: 760px;
+padding: 2rem;
+text-align: center;
+}
+
+.auth-panel {
+position: fixed;
+top: 0;
+right: 0;
+width: 420px;
+height: 100vh;
+background: #fff;
+border-left: 1px solid rgba(0,0,0,.06);
+box-shadow: -10px 0 30px rgba(0,0,0,.08);
+overflow-y: auto;
+padding: 24px;
+z-index: 1040; /* por encima del contenido */
+}
+
+.auth-panel .nav-tabs .nav-link {
+font-weight: 600;
+}
+
+.auth-panel .form-label {
+font-weight: 600;
+}
+
+@media (max-width: 991.98px) {
+.auth-hero { display: none; }
+.auth-panel {
+    position: static;
+    width: 100%;
+    height: auto;
+    box-shadow: none;
+    border-left: 0;
+}
+.auth-wrapper {
+    min-height: auto;
+}
+}
+

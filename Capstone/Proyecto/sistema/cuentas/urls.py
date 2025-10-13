@@ -1,8 +1,10 @@
 from django.urls import path
-from . import views
+from .views import MCLoginView, registro, perfil
+
+app_name = "cuentas"
 
 urlpatterns = [
-    path('perfil/', views.perfil, name='perfil'),
-    path('login/', views.login, name='login'),
-    path('registro/', views.registro, name='registro'),
+    path("login/", MCLoginView.as_view(), name="login"),   # opcional; fallback si navegan directo
+    path("registro/", registro, name="registro"),
+    path("perfil/", perfil, name="perfil"),
 ]
