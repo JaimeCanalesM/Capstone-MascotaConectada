@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block titulo %}Clínicas{% endblock %}
+{% block contenido %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">Clínicas</h1>
+  <!-- Sin acciones de crear/editar/eliminar -->
+</div>
+
+<form class="row g-2 mb-3" method="get">
+  <div class="col-sm-8 col-md-6">
+    <input class="form-control" type="search" name="q" value="{{ q }}" placeholder="Buscar por nombre, dirección o servicios…">
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-outline-secondary">Buscar</button>
+  </div>
+</form>
+
+{% if clinicas %}
+  <div class="list-group">
+    {% for c in clinicas %}
+      <a class="list-group-item list-group-item-action" href="{% url 'clinicas:detalle' c.pk %}">
+        <div class="d-flex w-100 justify-content-between">
+          <h5 class="mb-1">{{ c.nombre }}</h5>
+          <small class="text-muted">{{ c.telefono }}</small>
+        </div>
+        <p class="mb-1 text-muted">{{ c.direccion }}</p>
+        {% if c.servicios %}<small class="text-muted">{{ c.servicios|truncatechars:120 }}</small>{% endif %}
+      </a>
+    {% endfor %}
+  </div>
+
+  {% if is_paginated %}
+  <nav class="mt-3">
+    <ul class="pagination">
+      {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.previous_page_number }}">«</a></li>
+      {% else %}<li class="page-item disabled"><span class="page-link">«</span></li>{% endif %}
+      <li class="page-item disabled"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+      {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.next_page_number }}">»</a></li>
+      {% else %}<li class="page-item disabled"><span class="page-link">»</span></li>{% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+
+{% else %}
+  <div class="alert alert-info">
+    Aún no hay clínicas disponibles. Próximamente se mostrarán automáticamente con la integración de mapas.
+  </div>
+{% endif %}
+
+{% endblock %}

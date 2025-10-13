@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block titulo %}Inicio{% endblock %}
+
+{% block head_extra %}
+  <style>
+    .hero{
+      position:relative; isolation:isolate;
+      background:linear-gradient(135deg,#0ea5e9 0%, #6366f1 100%);
+      color:#fff; border-radius:1rem; overflow:hidden;
+    }
+    .hero::after{
+      content:""; position:absolute; inset:-20%;
+      background:url('https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
+      opacity:.22; z-index:-1; filter:saturate(1.1) contrast(1.05);
+    }
+    .hero .btn{box-shadow:0 6px 18px rgba(0,0,0,.15)}
+    .feature-card{border:0; border-radius:1rem}
+    .feature-card .icon{font-size:1.75rem}
+    .rounded-4{border-radius:1rem!important}
+    .object-fit-cover{object-fit:cover}
+  </style>
+{% endblock %}
+
+{% block contenido %}
+
+<!-- HERO -->
+<section class="container my-4">
+  <div class="hero p-4 p-md-5">
+    <div class="row align-items-center">
+      <div class="col-lg-7">
+        <h1 class="display-6 fw-bold mb-2">Tecnología al servicio de tu mejor amigo</h1>
+        <p class="lead mb-4">Encuentra clínicas cercanas, registra a tu mascota y gestiona sus cuidados. Simple, rápido y bonito 🐶🐱💙</p>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{% url 'clinicas:lista' %}" class="btn btn-light btn-lg">Ver clínicas</a>
+          {% if not user.is_authenticated %}
+            <a href="{% url 'cuentas:registro_dueno' %}" class="btn btn-outline-light btn-lg">Soy dueño</a>
+            <a href="{% url 'cuentas:registro_vet' %}" class="btn btn-outline-light btn-lg">Soy veterinario</a>
+          {% else %}
+            <a href="{% url 'logout' %}" class="btn btn-outline-light btn-lg">Cerrar sesión</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Carrusel “pet tech” -->
+      <div class="col-lg-5 mt-4 mt-lg-0">
+        <div class="bg-white text-dark rounded-4 p-3 shadow-sm">
+          <div id="petTechCarousel" class="carousel slide rounded-4 overflow-hidden" data-bs-ride="carousel">
+            <div class="carousel-inner">
+              <div class="carousel-item active">
+                <!-- Gato mirando una pantalla -->
+                <img src="https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?q=80&w=1400&auto=format&fit=crop"
+                     class="d-block w-100 object-fit-cover" style="height:280px"
+                     alt="Gato mirando una pantalla en el escritorio">
+              </div>
+              <div class="carousel-item">
+                <!-- Perro con audífonos -->
+                <img src="https://images.unsplash.com/photo-1546182990-dffeafbe841d?q=80&w=1400&auto=format&fit=crop"
+                     class="d-block w-100 object-fit-cover" style="height:280px"
+                     alt="Perro con audífonos al lado de un notebook">
+              </div>
+              <div class="carousel-item">
+                <!-- Gato y laptop -->
+                <img src="https://images.unsplash.com/photo-1555685812-4b943f1cb0eb?q=80&w=1400&auto=format&fit=crop"
+                     class="d-block w-100 object-fit-cover" style="height:280px"
+                     alt="Gato junto a una laptop">
+              </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#petTechCarousel" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Anterior</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#petTechCarousel" data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Siguiente</span>
+            </button>
+          </div>
+          <div class="mt-3 small text-muted">
+            * Imágenes referenciales — pronto agregaremos un mapa interactivo con tu ubicación.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="container my-5">
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="card feature-card h-100 shadow-sm">
+        <div class="card-body">
+          <div class="icon mb-2">📍</div>
+          <h5 class="card-title">Clínicas cercanas</h5>
+          <p class="card-text text-muted">Busca centros veterinarios en tu zona y revisa su información clave.</p>
+          <a class="stretched-link" href="{% url 'clinicas:lista' %}"></a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card feature-card h-100 shadow-sm">
+        <div class="card-body">
+          <div class="icon mb-2">🗓️</div>
+          <h5 class="card-title">Agenda organizada</h5>
+          <p class="card-text text-muted">(Próximamente) Gestiona y recuerda tus próximas visitas con un par de clics.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card feature-card h-100 shadow-sm">
+        <div class="card-body">
+          <div class="icon mb-2">🔒</div>
+          <h5 class="card-title">Perfiles por rol</h5>
+          <p class="card-text text-muted">Dueños y veterinarios con accesos diferenciados para una experiencia segura.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="container my-5">
+  <div class="p-4 p-md-5 bg-white rounded-4 shadow-sm border">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <h2 class="h3 mb-2">¿Listo para empezar?</h2>
+        <p class="text-muted mb-0">Crea tu cuenta y prepara a tu peludo para su próxima revisión 🐕✨</p>
+      </div>
+      <div class="col-lg-4 mt-3 mt-lg-0 text-lg-end">
+        {% if not user.is_authenticated %}
+          <a href="{% url 'cuentas:registro_dueno' %}" class="btn btn-primary me-2">Soy dueño</a>
+          <a href="{% url 'cuentas:registro_vet' %}" class="btn btn-outline-primary">Soy veterinario</a>
+        {% else %}
+          <a href="{% url 'clinicas:lista' %}" class="btn btn-primary">Ver clínicas</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

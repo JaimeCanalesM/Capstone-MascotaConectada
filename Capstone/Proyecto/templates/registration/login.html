@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block titulo %}Ingresar{% endblock %}
+{% block contenido %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <h1 class="h4 mb-3">Iniciar sesión</h1>
+
+    {% if form.errors %}
+      <div class="alert alert-danger">
+        Usuario o contraseña inválidos.
+      </div>
+    {% endif %}
+
+    {% if next %}
+      {% if user.is_authenticated %}
+        <div class="alert alert-warning">
+          Tu cuenta no tiene acceso a esta página. Inicia sesión con una cuenta con permisos.
+        </div>
+      {% else %}
+        <div class="alert alert-info">
+          Por favor, inicia sesión para continuar.
+        </div>
+      {% endif %}
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Usuario</label>
+        {{ form.username }}
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Contraseña</label>
+        {{ form.password }}
+      </div>
+      {% if next %}
+        <input type="hidden" name="next" value="{{ next }}">
+      {% endif %}
+      <button class="btn btn-primary w-100">Ingresar</button>
+    </form>
+
+    <hr class="my-4">
+
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary w-50" href="{% url 'cuentas:registro_dueno' %}">Soy Dueño</a>
+      <a class="btn btn-outline-secondary w-50" href="{% url 'cuentas:registro_vet' %}">Soy Veterinario</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

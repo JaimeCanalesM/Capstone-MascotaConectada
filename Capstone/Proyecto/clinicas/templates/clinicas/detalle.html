@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block titulo %}{{ clinica.nombre }}{% endblock %}
+{% block contenido %}
+<h1 class="h4 mb-3">{{ clinica.nombre }}</h1>
+<p class="mb-1"><strong>Dirección:</strong> {{ clinica.direccion }}</p>
+{% if clinica.telefono %}<p class="mb-1"><strong>Teléfono:</strong> <a href="tel:{{ clinica.telefono }}">{{ clinica.telefono }}</a></p>{% endif %}
+{% if clinica.email %}<p class="mb-1"><strong>Email:</strong> <a href="mailto:{{ clinica.email }}">{{ clinica.email }}</a></p>{% endif %}
+{% if clinica.horario %}<p class="mb-1"><strong>Horario:</strong> {{ clinica.horario }}</p>{% endif %}
+{% if clinica.servicios %}<p class="mb-3"><strong>Servicios:</strong><br>{{ clinica.servicios|linebreaksbr }}</p>{% endif %}
+{% if clinica.lat and clinica.lng %}
+  <p class="text-muted">Ubicación: {{ clinica.lat }}, {{ clinica.lng }}</p>
+{% endif %}
+
+<a class="btn btn-outline-secondary" href="{% url 'clinicas:lista' %}">Volver</a>
+{% endblock %}
