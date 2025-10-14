@@ -5,37 +5,33 @@
   <div class="col-md-5">
     <h1 class="h4 mb-3">Iniciar sesión</h1>
 
-    {% if form.errors %}
-      <div class="alert alert-danger">
-        Usuario o contraseña inválidos.
-      </div>
-    {% endif %}
-
-    {% if next %}
-      {% if user.is_authenticated %}
-        <div class="alert alert-warning">
-          Tu cuenta no tiene acceso a esta página. Inicia sesión con una cuenta con permisos.
-        </div>
-      {% else %}
-        <div class="alert alert-info">
-          Por favor, inicia sesión para continuar.
-        </div>
-      {% endif %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
     {% endif %}
 
     <form method="post" novalidate>
       {% csrf_token %}
+
       <div class="mb-3">
-        <label class="form-label">Usuario</label>
+        <label class="form-label" for="{{ form.username.id_for_label }}">Usuario</label>
         {{ form.username }}
+        {% if form.username.errors %}
+          <div class="text-danger small">{{ form.username.errors|striptags }}</div>
+        {% endif %}
       </div>
+
       <div class="mb-3">
-        <label class="form-label">Contraseña</label>
+        <label class="form-label" for="{{ form.password.id_for_label }}">Contraseña</label>
         {{ form.password }}
+        {% if form.password.errors %}
+          <div class="text-danger small">{{ form.password.errors|striptags }}</div>
+        {% endif %}
       </div>
+
       {% if next %}
         <input type="hidden" name="next" value="{{ next }}">
       {% endif %}
+
       <button class="btn btn-primary w-100">Ingresar</button>
     </form>
 

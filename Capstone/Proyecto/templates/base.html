@@ -35,10 +35,12 @@
 
       <div id="navMain" class="collapse navbar-collapse">
         <ul class="navbar-nav ms-auto align-items-lg-center">
-          <li class="nav-item"><a class="nav-link" href="{% url 'clinicas:lista' %}">Clínicas</a></li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'clinicas:lista' %}">Clínicas</a>
+          </li>
 
           {% if user.is_authenticated %}
-            <!-- Saludo + badges -->
+            <!-- Saludo + badges de rol/estado -->
             <li class="nav-item d-none d-lg-block mx-2">
               <span class="nav-link">
                 Hola, {{ user.username }}
@@ -54,9 +56,15 @@
                 {% endwith %}
               </span>
             </li>
+
+            <!-- Logout por POST (Django 5) -->
             <li class="nav-item mt-2 mt-lg-0">
-              <a class="btn btn-outline-danger" href="{% url 'logout' %}">Salir</a>
+              <form method="post" action="{% url 'logout' %}" class="d-inline">
+                {% csrf_token %}
+                <button class="btn btn-outline-danger">Salir</button>
+              </form>
             </li>
+
           {% else %}
             <li class="nav-item mt-2 mt-lg-0 me-lg-2">
               <a class="btn btn-primary" href="{% url 'login' %}">Ingresar</a>
@@ -78,8 +86,19 @@
   <!-- /HEADER -->
 
   <main class="flex-grow-1">
-    {% block contenido %}{% endblock %}
-  </main>
+  <main class="flex-grow-1">
+  {% if messages %}
+    <div class="container mt-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% block contenido %}{% endblock %}
+</main>
 
   <!-- FOOTER -->
   <footer class="mt-5 py-4">

@@ -8,17 +8,55 @@
     Tu cuenta quedará en <strong>revisión</strong> hasta que un administrador valide tus datos.
   </div>
 
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+  {% endif %}
+
   <form method="post" novalidate>
     {% csrf_token %}
-    <div class="row g-2">
-      <div class="col-md-6"><label class="form-label">Usuario</label>{{ form.username }}</div>
-      <div class="col-md-6"><label class="form-label">Email</label>{{ form.email }}</div>
-      <div class="col-md-6"><label class="form-label">Nombre</label>{{ form.first_name }}</div>
-      <div class="col-md-6"><label class="form-label">Apellido</label>{{ form.last_name }}</div>
-      <div class="col-md-6"><label class="form-label">Contraseña</label>{{ form.password1 }}</div>
-      <div class="col-md-6"><label class="form-label">Repetir contraseña</label>{{ form.password2 }}</div>
-      <div class="col-md-6"><label class="form-label">Registro profesional</label>{{ form.vet_registro }}</div>
-      <div class="col-md-6"><label class="form-label">Clínica/centro</label>{{ form.vet_clinica }}</div>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label" for="{{ form.username.id_for_label }}">Usuario</label>
+        {{ form.username }}
+        {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors|striptags }}</div>{% endif %}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="{{ form.email.id_for_label }}">Email</label>
+        {{ form.email }}
+        {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors|striptags }}</div>{% endif %}
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label" for="{{ form.first_name.id_for_label }}">Nombre</label>
+        {{ form.first_name }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="{{ form.last_name.id_for_label }}">Apellido</label>
+        {{ form.last_name }}
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label" for="{{ form.password1.id_for_label }}">Contraseña</label>
+        {{ form.password1 }}
+        {% if form.password1.help_text %}<div class="form-text">{{ form.password1.help_text|safe }}</div>{% endif %}
+        {% if form.password1.errors %}<div class="text-danger small">{{ form.password1.errors|striptags }}</div>{% endif %}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="{{ form.password2.id_for_label }}">Repetir contraseña</label>
+        {{ form.password2 }}
+        {% if form.password2.errors %}<div class="text-danger small">{{ form.password2.errors|striptags }}</div>{% endif %}
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label" for="{{ form.vet_registro.id_for_label }}">Registro profesional</label>
+        {{ form.vet_registro }}
+        {% if form.vet_registro.errors %}<div class="text-danger small">{{ form.vet_registro.errors|striptags }}</div>{% endif %}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="{{ form.vet_clinica.id_for_label }}">Clínica/centro</label>
+        {{ form.vet_clinica }}
+      </div>
     </div>
 
     <div class="mt-3 d-flex gap-2">

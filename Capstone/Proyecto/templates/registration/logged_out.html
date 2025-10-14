@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% block titulo %}Sesión cerrada{% endblock %}
 {% block contenido %}
-  <div class="alert alert-success">Has cerrado sesión.</div>
-  <a class="btn btn-primary" href="{% url 'login' %}">Volver a ingresar</a>
+  <div class="container my-4">
+    <div class="alert alert-success shadow-sm">
+      <strong>Sesión cerrada.</strong> ¡Hasta pronto! 👋
+    </div>
+    <a class="btn btn-primary" href="{% url 'login' %}">Volver a ingresar</a>
+    <a class="btn btn-outline-secondary ms-2" href="{% url 'core:index' %}">Ir al inicio</a>
+  </div>
 {% endblock %}

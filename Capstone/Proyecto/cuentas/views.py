@@ -4,6 +4,13 @@ from django.shortcuts import render, redirect
 from django.views import View
 from .forms import SignupDuenoForm, SignupVetForm
 from .models import Perfil
+from django.contrib import messages
+from django.contrib.auth.views import LogoutView
+
+class LogoutWithMessageView(LogoutView):
+    def get_next_page(self):
+        messages.info(self.request, "Has cerrado sesión.")
+        return super().get_next_page()
 
 class SignupDuenoView(View):
     template_name = "cuentas/registro_dueno.html"

@@ -35,8 +35,6 @@
           {% if not user.is_authenticated %}
             <a href="{% url 'cuentas:registro_dueno' %}" class="btn btn-outline-light btn-lg">Soy dueño</a>
             <a href="{% url 'cuentas:registro_vet' %}" class="btn btn-outline-light btn-lg">Soy veterinario</a>
-          {% else %}
-            <a href="{% url 'logout' %}" class="btn btn-outline-light btn-lg">Cerrar sesión</a>
           {% endif %}
         </div>
       </div>
@@ -92,7 +90,7 @@
           <div class="icon mb-2">📍</div>
           <h5 class="card-title">Clínicas cercanas</h5>
           <p class="card-text text-muted">Busca centros veterinarios en tu zona y revisa su información clave.</p>
-          <a class="stretched-link" href="{% url 'clinicas:lista' %}"></a>
+          <!-- Se quitó el enlace tipo stretched-link -->
         </div>
       </div>
     </div>
