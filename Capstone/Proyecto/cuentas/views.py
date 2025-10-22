@@ -1,52 +1,60 @@
-from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from django.views import View
-from .forms import SignupDuenoForm, SignupVetForm
-from .models import Perfil
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LogoutView
+from django.shortcuts import redirect
+from django.urls import reverse_lazy
+from django.views.generic import FormView
 
+from .forms import UnifiedSignupForm
+
+
+# ---------------------------------------------------------------------
+# Logout con mensaje (Django 5 requiere POST). Redirige al home.
+# ---------------------------------------------------------------------
 class LogoutWithMessageView(LogoutView):
-    def get_next_page(self):
-        messages.info(self.request, "Has cerrado sesión.")
-        return super().get_next_page()
+    next_page = "core:index"
 
-class SignupDuenoView(View):
-    template_name = "cuentas/registro_dueno.html"
-    def get(self, request):
-        return render(request, self.template_name, {"form": SignupDuenoForm()})
-    def post(self, request):
-        form = SignupDuenoForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect("cuentas:redireccion")
-        return render(request, self.template_name, {"form": form})
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        messages.success(request, "Has cerrado sesión correctamente. ¡Hasta pronto! 👋")
+        return response
 
-class SignupVetView(View):
-    template_name = "cuentas/registro_vet.html"
-    def get(self, request):
-        return render(request, self.template_name, {"form": SignupVetForm()})
-    def post(self, request):
-        form = SignupVetForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect("cuentas:redireccion")
-        return render(request, self.template_name, {"form": form})
 
+# ---------------------------------------------------------------------
+# Registro unificado: crea usuario + perfil según checkbox is_veterinario.
+# - is_veterinario = True  => rol VET, estado PENDIENTE
+# - is_veterinario = False => rol DUENO
+# ---------------------------------------------------------------------
+class RegistroView(FormView):
+    template_name = "cuentas/registro.html"
+    form_class = UnifiedSignupForm
+    success_url = reverse_lazy("login")
+
+    def form_valid(self, form):
+        form.save()
+        if form.cleaned_data.get("is_veterinario"):
+            messages.success(
+                self.request,
+                "Cuenta creada. La solicitud de veterinario quedó en revisión. "
+                "Recibirá notificación al ser aprobada."
+            )
+        else:
+            messages.success(self.request, "Cuenta creada. Ya puede iniciar sesión.")
+        return super().form_valid(form)
+
+
+# ---------------------------------------------------------------------
+# Redirección post-login según rol del perfil.
+# - Dueño => lista de mascotas
+# - Veterinario => (placeholder) home por ahora; se puede apuntar a un panel.
+# - Sin perfil/rol => home
+# ---------------------------------------------------------------------
 @login_required
 def redireccion_post_login(request):
-    """ Redirige según rol/estado. """
     perfil = getattr(request.user, "perfil", None)
-    if not perfil:
+    if perfil and getattr(perfil, "rol", None) == "DUENO":
+        return redirect("mascota:lista")
+    if perfil and getattr(perfil, "rol", None) == "VET":
+        # TODO: cuando exista dashboard de veterinario, cambiar aquí.
         return redirect("core:index")
-
-    if perfil.rol == Perfil.ROL_VET:
-        # Si es vet y está aprobado, puedes enviarlo a zona vet (cuando exista).
-        # Por ahora, lo mandamos a clínicas igual, pero mostramos el estado en la UI.
-        return redirect("clinicas:lista")
-
-    # Dueño: al home
     return redirect("core:index")

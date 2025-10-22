@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block titulo %}Panel — Dashboard{% endblock %}
+
+{% block contenido %}
+<div class="container my-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Panel de administración</h1>
+    <a class="btn btn-outline-primary" href="{% url 'panel:veterinarios_pendientes' %}">Veterinarios pendientes</a>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="text-muted small">Usuarios</div>
+          <div class="h4 mb-0">{{ total_users }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="text-muted small">Dueños</div>
+          <div class="h4 mb-0">{{ total_duenos }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="text-muted small">Veterinarios</div>
+          <div class="h4 mb-0">{{ total_vets }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="text-muted small">Vets pendientes</div>
+          <div class="h4 mb-0">{{ total_vets_pend }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-4 shadow-sm">
+    <div class="card-header bg-white">
+      <strong>Usuarios recientes</strong>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Staff</th>
+              <th>Superuser</th>
+              <th>Creado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for u in recientes %}
+              <tr>
+                <td>{{ u.username }}</td>
+                <td>{{ u.first_name }} {{ u.last_name }}</td>
+                <td>{{ u.email }}</td>
+                <td>{% if u.is_staff %}✔{% else %}—{% endif %}</td>
+                <td>{% if u.is_superuser %}✔{% else %}—{% endif %}</td>
+                <td>{{ u.date_joined|date:"Y-m-d H:i" }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="6" class="text-center text-muted py-4">Sin usuarios recientes.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

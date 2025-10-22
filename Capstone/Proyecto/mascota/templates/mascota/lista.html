@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block titulo %}Mis mascotas{% endblock %}
+{% block contenido %}
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Mis mascotas</h1>
+    <a class="btn btn-primary" href="{% url 'mascota:crear' %}">Registrar mascota</a>
+  </div>
+
+  {% if mascotas %}
+    <div class="row g-3">
+      {% for m in mascotas %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100">
+            {% if m.foto %}
+              <img src="{{ m.foto.url }}" class="card-img-top" alt="{{ m.nombre }}" style="height:180px; object-fit:cover;">
+            {% endif %}
+            <div class="card-body">
+              <h5 class="card-title mb-1">{{ m.nombre }}</h5>
+              <div class="text-muted small">{{ m.especie }}{% if m.raza %} · {{ m.raza }}{% endif %}</div>
+              {% if m.sexo %}<div class="small mt-1">Sexo: {{ m.get_sexo_display }}</div>{% endif %}
+            </div>
+            <div class="card-footer bg-white d-flex gap-2">
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'mascota:detalle' m.pk %}">Ver</a>
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'mascota:editar' m.pk %}">Editar</a>
+              <a class="btn btn-sm btn-outline-danger" href="{% url 'mascota:eliminar' m.pk %}">Eliminar</a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info">Aún no registras mascotas.</div>
+  {% endif %}
+</div>
+{% endblock %}

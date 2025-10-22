@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block titulo %}Eliminar mascota{% endblock %}
+{% block contenido %}
+<div class="container my-4">
+  <div class="alert alert-warning">
+    ¿Eliminar <strong>{{ object.nombre }}</strong>? Esta acción no se puede deshacer.
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <button class="btn btn-danger">Sí, eliminar</button>
+    <a class="btn btn-outline-secondary ms-2" href="{% url 'mascota:lista' %}">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

@@ -1,10 +1,9 @@
 from django.urls import path
-from . import views
+from .views import RegistroView, redireccion_post_login
 
 app_name = "cuentas"
 
 urlpatterns = [
-    path("registro/dueno/", views.SignupDuenoView.as_view(), name="registro_dueno"),
-    path("registro/veterinario/", views.SignupVetView.as_view(), name="registro_vet"),
-    path("redireccion/", views.redireccion_post_login, name="redireccion"),
+    path("registro/", RegistroView.as_view(), name="registro"),
+    path("redireccion/", redireccion_post_login, name="redireccion"),
 ]

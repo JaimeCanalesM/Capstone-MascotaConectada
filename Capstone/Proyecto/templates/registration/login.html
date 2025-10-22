@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block titulo %}Ingresar{% endblock %}
+
 {% block contenido %}
 <div class="row justify-content-center">
   <div class="col-md-5">
@@ -37,10 +38,7 @@
 
     <hr class="my-4">
 
-    <div class="d-flex gap-2">
-      <a class="btn btn-outline-secondary w-50" href="{% url 'cuentas:registro_dueno' %}">Soy Dueño</a>
-      <a class="btn btn-outline-secondary w-50" href="{% url 'cuentas:registro_vet' %}">Soy Veterinario</a>
-    </div>
+    <a class="btn btn-outline-secondary w-100" href="{% url 'cuentas:registro' %}">Crear cuenta</a>
   </div>
 </div>
 {% endblock %}

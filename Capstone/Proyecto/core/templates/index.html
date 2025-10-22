@@ -3,6 +3,7 @@
 
 {% block head_extra %}
   <style>
+    /* Fondo degradado del héroe con imagen superpuesta tenue */
     .hero{
       position:relative; isolation:isolate;
       background:linear-gradient(135deg,#0ea5e9 0%, #6366f1 100%);
@@ -33,13 +34,13 @@
         <div class="d-flex flex-wrap gap-2">
           <a href="{% url 'clinicas:lista' %}" class="btn btn-light btn-lg">Ver clínicas</a>
           {% if not user.is_authenticated %}
-            <a href="{% url 'cuentas:registro_dueno' %}" class="btn btn-outline-light btn-lg">Soy dueño</a>
-            <a href="{% url 'cuentas:registro_vet' %}" class="btn btn-outline-light btn-lg">Soy veterinario</a>
+            <!-- Registro unificado: reemplaza enlaces antiguos a registro_dueno / registro_vet -->
+            <a href="{% url 'cuentas:registro' %}" class="btn btn-outline-light btn-lg">Crear cuenta</a>
           {% endif %}
         </div>
       </div>
 
-      <!-- Carrusel “pet tech” -->
+      <!-- Carrusel “pet tech” para impacto visual -->
       <div class="col-lg-5 mt-4 mt-lg-0">
         <div class="bg-white text-dark rounded-4 p-3 shadow-sm">
           <div id="petTechCarousel" class="carousel slide rounded-4 overflow-hidden" data-bs-ride="carousel">
@@ -73,7 +74,7 @@
             </button>
           </div>
           <div class="mt-3 small text-muted">
-            * Imágenes referenciales — pronto agregaremos un mapa interactivo con tu ubicación.
+            * Imágenes referenciales — más adelante se integrará un mapa interactivo.
           </div>
         </div>
       </div>
@@ -90,7 +91,7 @@
           <div class="icon mb-2">📍</div>
           <h5 class="card-title">Clínicas cercanas</h5>
           <p class="card-text text-muted">Busca centros veterinarios en tu zona y revisa su información clave.</p>
-          <!-- Se quitó el enlace tipo stretched-link -->
+          <!-- Nota: no se usa stretched-link para evitar confusión con “botón” duplicado. -->
         </div>
       </div>
     </div>
@@ -99,7 +100,7 @@
         <div class="card-body">
           <div class="icon mb-2">🗓️</div>
           <h5 class="card-title">Agenda organizada</h5>
-          <p class="card-text text-muted">(Próximamente) Gestiona y recuerda tus próximas visitas con un par de clics.</p>
+          <p class="card-text text-muted">(Próximamente) Gestión y recordatorios para próximas visitas.</p>
         </div>
       </div>
     </div>
@@ -108,7 +109,7 @@
         <div class="card-body">
           <div class="icon mb-2">🔒</div>
           <h5 class="card-title">Perfiles por rol</h5>
-          <p class="card-text text-muted">Dueños y veterinarios con accesos diferenciados para una experiencia segura.</p>
+          <p class="card-text text-muted">Dueños y veterinarios con accesos diferenciados.</p>
         </div>
       </div>
     </div>
@@ -125,8 +126,8 @@
       </div>
       <div class="col-lg-4 mt-3 mt-lg-0 text-lg-end">
         {% if not user.is_authenticated %}
-          <a href="{% url 'cuentas:registro_dueno' %}" class="btn btn-primary me-2">Soy dueño</a>
-          <a href="{% url 'cuentas:registro_vet' %}" class="btn btn-outline-primary">Soy veterinario</a>
+          <!-- Registro unificado: único CTA -->
+          <a href="{% url 'cuentas:registro' %}" class="btn btn-primary">Crear cuenta</a>
         {% else %}
           <a href="{% url 'clinicas:lista' %}" class="btn btn-primary">Ver clínicas</a>
         {% endif %}
