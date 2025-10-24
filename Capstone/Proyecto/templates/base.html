@@ -11,7 +11,7 @@
   <style>
     /* Estilos de layout y estética liviana para header/footer */
     .navbar-brand .logo{font-size:1.35rem}
-    .navbar{position:sticky; top:0; z-index:1020; background:#fff}
+    .navbar{position:sticky; top:0; z-index:1020; background:#27d88b}
     .navbar.shadow-sm{box-shadow:0 .125rem .25rem rgba(0,0,0,.075)!important}
     footer{background:#0b1727; color:#cbd5e1}
     footer a{color:#93c5fd; text-decoration:none}
@@ -23,9 +23,9 @@
 <body class="d-flex flex-column min-vh-100 bg-light">
 
   <!-- HEADER / NAVBAR -->
-  <nav class="navbar navbar-expand-lg shadow-sm border-0">
+  <nav class="navbar navbar-expand-lg shadow-sm border-0" style="background-color: #27d88b;">
     <div class="container">
-      <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'core:index' %}">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'core:index' %}" style="color: white !important;">
         <span class="logo">🐾</span>
         <strong>MascotaConectada</strong>
       </a>
@@ -38,29 +38,29 @@
         <ul class="navbar-nav ms-auto align-items-lg-center">
           <!-- Público -->
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'clinicas:lista' %}">Clínicas</a>
+            <a class="nav-link" href="{% url 'clinicas:lista' %}" style="color: white !important;">Clínicas</a>
           </li>
 
           {% if user.is_authenticated %}
             <!-- Mis mascotas (si se requiere filtrar por rol dueño, anidar otra condición aquí) -->
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'mascota:lista' %}">Mis mascotas</a>
+              <a class="nav-link" href="{% url 'mascota:lista' %}" style="color: white !important;">Mis mascotas</a>
             </li>
 
             <!-- Acceso al Panel para staff/superuser (sin paréntesis en condiciones) -->
             {% if user.is_staff or user.is_superuser %}
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'panel:dashboard' %}">Admin</a>
+                <a class="nav-link" href="{% url 'panel:dashboard' %}" style="color: white !important;">Admin</a>
               </li>
             {% endif %}
 
             <!-- Saludo + badges de rol/estado -->
             <li class="nav-item d-none d-lg-block mx-2">
-              <span class="nav-link">
+              <span class="nav-link" style="color: white !important;">
                 Hola, {{ user.username }}
                 {% with p=user.perfil %}
                   {% if p %}
-                    <span class="badge text-bg-secondary">{{ p.get_rol_display }}</span>
+                    <span class="badge" style="background-color: white; color: #27d88b; margin-left: 8px; font-weight: 600;">{{ p.get_rol_display }}</span>
                     {% if p.rol == "VET" and p.vet_estado %}
                       <span class="badge {% if p.vet_estado == 'APROBADO' %}text-bg-success{% elif p.vet_estado == 'RECHAZADO' %}text-bg-danger{% else %}text-bg-warning{% endif %}">
                         {{ p.vet_estado|title }}
@@ -71,21 +71,24 @@
               </span>
             </li>
 
-            <!-- Logout por POST (Django 5) -->
+            <!-- Mi Perfil y Logout por POST (Django 5) -->
             <li class="nav-item mt-2 mt-lg-0">
+              <a class="btn" href="{% url 'cuentas:perfil' %}" style="background-color: white; color: #27d88b; border: none; font-weight: 600; padding: 6px 16px; border-radius: 5px; margin-right: 8px;">Mi Perfil</a>
               <form method="post" action="{% url 'logout' %}" class="d-inline">
                 {% csrf_token %}
-                <button class="btn btn-outline-danger">Salir</button>
+                <button class="btn" style="background-color: white; color: #27d88b; border: none; font-weight: 600; padding: 6px 16px; border-radius: 5px; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='#f0f0f0'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0, 0, 0, 0.15)';" onmouseout="this.style.backgroundColor='white'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">Salir</button>
               </form>
             </li>
 
           {% else %}
             <!-- Accesos cuando no hay sesión -->
-            <li class="nav-item mt-2 mt-lg-0 me-lg-2">
-              <a class="btn btn-primary" href="{% url 'login' %}">Ingresar</a>
+            <li class="nav-item">
+              <a class="btn" href="{% url 'login' %}" 
+              style="background-color: white; color: #27d88b; border: none; font-weight: 600;">Ingresar</a>
             </li>
             <li class="nav-item mt-2 mt-lg-0">
-              <a class="btn btn-outline-secondary" href="{% url 'cuentas:registro' %}">Registrarme</a>
+              <a class="btn" href="{% url 'cuentas:registro' %}" 
+              style="background-color: white; color: #27d88b; border: none; font-weight: 600;">Registrarme</a>
             </li>
           {% endif %}
         </ul>
@@ -112,28 +115,28 @@
   </main>
 
   <!-- FOOTER -->
-  <footer class="mt-5 py-4">
+  <footer class="mt-5 py-4" style="background-color: #27d88b;">
     <div class="container">
       <div class="row gy-3 align-items-center">
         <div class="col-md-6">
           <div class="d-flex align-items-center gap-2">
             <span>🐾</span>
             <div>
-              <strong>MascotaConectada</strong><br>
-              <small class="text-secondary">Conecta a tu mejor amigo con la mejor atención</small>
+              <strong style="color: white;">MascotaConectada</strong><br>
+              <small style="color: rgba(255, 255, 255, 0.9);">Conecta a tu mejor amigo con la mejor atención</small>
             </div>
           </div>
         </div>
         <div class="col-md-6 text-md-end">
-          <small class="d-block">© {{ now|date:"Y" }} MascotaConectada</small>
+          <small class="d-block" style="color: rgba(255, 255, 255, 0.9);">© {{ now|date:"Y" }} MascotaConectada</small>
           <small>
-            <a href="{% url 'clinicas:lista' %}">Clínicas</a>
-            · <a href="{% url 'login' %}">Ingresar</a>
-            · <a href="{% url 'cuentas:registro' %}">Registrarme</a>
-            {% if user.is_authenticated %} · <a href="{% url 'mascota:lista' %}">Mis mascotas</a>{% endif %}
+            <a href="{% url 'clinicas:lista' %}" style="color: white; text-decoration: none;">Clínicas</a>
+            · <a href="{% url 'login' %}" style="color: white; text-decoration: none;">Ingresar</a>
+            · <a href="{% url 'cuentas:registro' %}" style="color: white; text-decoration: none;">Registrarme</a>
+            {% if user.is_authenticated %} · <a href="{% url 'mascota:lista' %}" style="color: white; text-decoration: none;">Mis mascotas</a>{% endif %}
             {% if user.is_authenticated %}
               {% if user.is_staff or user.is_superuser %}
-                · <a href="{% url 'panel:dashboard' %}">Admin</a>
+                · <a href="{% url 'panel:dashboard' %}" style="color: white; text-decoration: none;">Admin</a>
               {% endif %}
             {% endif %}
           </small>

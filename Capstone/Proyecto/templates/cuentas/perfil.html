@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block titulo %}Mi Perfil{% endblock %}
+
+{% block contenido %}
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <h1 class="h3 mb-4">Mi Perfil</h1>
+
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+          <!-- Avatar -->
+          <div class="d-flex align-items-center gap-3 mb-4 pb-4 border-bottom">
+            <div class="bg-success text-white d-flex align-items-center justify-content-center rounded-circle" style="width: 80px; height: 80px; font-size: 32px; flex-shrink: 0;">
+              {{ user.username|first|upper }}
+            </div>
+            <div>
+              <h2 class="h5 mb-1">{{ user.get_full_name|default:user.username }}</h2>
+              <p class="text-muted mb-0">@{{ user.username }}</p>
+            </div>
+          </div>
+
+          <!-- Información básica -->
+          <div class="row gy-3">
+            <div class="col-md-6">
+              <label class="form-label text-muted small">Email</label>
+              <p class="fw-medium">{{ user.email|default:"—" }}</p>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-muted small">Nombre completo</label>
+              <p class="fw-medium">{{ user.get_full_name|default:"—" }}</p>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-muted small">Miembro desde</label>
+              <p class="fw-medium">{{ user.date_joined|date:"d/m/Y H:i" }}</p>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-muted small">Último acceso</label>
+              <p class="fw-medium">{{ user.last_login|date:"d/m/Y H:i"|default:"—" }}</p>
+            </div>
+          </div>
+
+          <!-- Información de rol -->
+          {% if perfil %}
+            <hr class="my-4">
+            <h3 class="h6 mb-3">📋 Información de rol</h3>
+            
+            <div class="row gy-3">
+              <div class="col-md-6">
+                <label class="form-label text-muted small">Rol</label>
+                <p class="fw-medium">
+                  <span class="badge" style="background-color: #2d8659; color: white;">
+                    {{ perfil.get_rol_display }}
+                  </span>
+                </p>
+              </div>
+
+              <!-- Si es veterinario, mostrar estado -->
+              {% if perfil.rol == "VET" %}
+                <div class="col-md-6">
+                  <label class="form-label text-muted small">Estado de aprobación</label>
+                  <p class="fw-medium">
+                    {% if perfil.vet_estado == "APROBADO" %}
+                      <span class="badge text-bg-success">✓ Aprobado</span>
+                    {% elif perfil.vet_estado == "RECHAZADO" %}
+                      <span class="badge text-bg-danger">✗ Rechazado</span>
+                    {% else %}
+                      <span class="badge text-bg-warning">⏳ Pendiente de revisión</span>
+                    {% endif %}
+                  </p>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label text-muted small">Registro profesional</label>
+                  <p class="fw-medium">{{ perfil.vet_registro|default:"—" }}</p>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label text-muted small">Clínica/Centro</label>
+                  <p class="fw-medium">{{ perfil.vet_clinica|default:"—" }}</p>
+                </div>
+              {% endif %}
+            </div>
+          {% endif %}
+
+          <!-- Botones de acción -->
+          <hr class="my-4">
+          <div class="d-flex gap-2">
+            <a href="{% url 'core:index' %}" class="btn btn-outline-secondary">
+              ← Volver
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LogoutView
 from django.shortcuts import redirect
+from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic import FormView
 
@@ -45,16 +46,27 @@ class RegistroView(FormView):
 
 # ---------------------------------------------------------------------
 # Redirección post-login según rol del perfil.
-# - Dueño => lista de mascotas
-# - Veterinario => (placeholder) home por ahora; se puede apuntar a un panel.
+# - Dueño => Home
+# - Veterinario => Home
 # - Sin perfil/rol => home
 # ---------------------------------------------------------------------
 @login_required
 def redireccion_post_login(request):
     perfil = getattr(request.user, "perfil", None)
     if perfil and getattr(perfil, "rol", None) == "DUENO":
-        return redirect("mascota:lista")
+        return redirect("core:index")
     if perfil and getattr(perfil, "rol", None) == "VET":
         # TODO: cuando exista dashboard de veterinario, cambiar aquí.
         return redirect("core:index")
     return redirect("core:index")
+
+@login_required
+def perfil(request):
+    """Vista que muestra el perfil del usuario autenticado"""
+    perfil = getattr(request.user, 'perfil', None)
+    
+    contexto = {
+        'perfil': perfil,
+        'user': request.user,
+    }
+    return render(request, 'cuentas/perfil.html', contexto)
