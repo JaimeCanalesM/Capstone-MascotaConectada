@@ -15,11 +15,12 @@ urlpatterns = [
     path("clinicas/", include(("clinicas.urls", "clinicas"), namespace="clinicas")),
     path("mascotas/", include(("mascota.urls", "mascota"), namespace="mascota")),
     path("cuentas/", include(("cuentas.urls", "cuentas"), namespace="cuentas")),
+    path("citas/", include(("citas.urls", "citas"), namespace="citas")),
 
     # Panel de administración propio
     path("panel/", include(("panel.urls", "panel"), namespace="panel")),
 
-    # Auth: login con form Bootstrap personalizado
+    # Auth nativa (login con form custom + resto de endpoints)
     path(
         "accounts/login/",
         LoginView.as_view(
@@ -28,13 +29,9 @@ urlpatterns = [
         ),
         name="login",
     ),
-    # Logout con mensaje y POST
     path("accounts/logout/", LogoutWithMessageView.as_view(), name="logout"),
-
-    # Resto de urls de auth (password reset, etc.)
     path("accounts/", include("django.contrib.auth.urls")),
 ]
 
-# Servir media en desarrollo
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

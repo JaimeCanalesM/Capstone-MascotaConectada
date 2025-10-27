@@ -46,7 +46,9 @@
             <li class="nav-item">
               <a class="nav-link" href="{% url 'mascota:lista' %}" style="color: white !important;">Mis mascotas</a>
             </li>
-
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'citas:lista' %}">Mis citas</a>
+            </li>
             <!-- Acceso al Panel para staff/superuser (sin paréntesis en condiciones) -->
             {% if user.is_staff or user.is_superuser %}
               <li class="nav-item">

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block titulo %}Eliminar cita{% endblock %}
+{% block contenido %}
+<div class="container my-5">
+  <div class="alert alert-warning">
+    ¿Estás seguro de eliminar esta cita del {{ object.fecha_hora|date:"Y-m-d H:i" }} para {{ object.mascota.nombre }}?
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <button class="btn btn-danger">Sí, eliminar</button>
+    <a class="btn btn-outline-secondary ms-2" href="{% url 'citas:lista' %}">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

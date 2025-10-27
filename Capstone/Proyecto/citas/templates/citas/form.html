@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block titulo %}{% if object %}Editar cita{% else %}Nueva cita{% endif %}{% endblock %}
+{% block contenido %}
+<div class="container my-4">
+  <h1 class="h4 mb-3">{% if object %}Editar cita{% else %}Nueva cita{% endif %}</h1>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <div class="mb-3">
+      <label class="form-label" for="{{ form.mascota.id_for_label }}">Mascota</label>
+      {{ form.mascota }}
+      {% if form.mascota.errors %}<div class="text-danger small">{{ form.mascota.errors|striptags }}</div>{% endif %}
+    </div>
+
+    {% if form.fields.clinica %}
+    <div class="mb-3">
+      <label class="form-label" for="{{ form.clinica.id_for_label }}">Clínica</label>
+      {{ form.clinica }}
+      {% if form.clinica.errors %}<div class="text-danger small">{{ form.clinica.errors|striptags }}</div>{% endif %}
+    </div>
+    {% endif %}
+
+    <div class="mb-3">
+      <label class="form-label" for="{{ form.fecha_hora.id_for_label }}">Fecha y hora</label>
+      {{ form.fecha_hora }}
+      {% if form.fecha_hora.errors %}<div class="text-danger small">{{ form.fecha_hora.errors|striptags }}</div>{% endif %}
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="{{ form.motivo.id_for_label }}">Motivo</label>
+      {{ form.motivo }}
+      {% if form.motivo.errors %}<div class="text-danger small">{{ form.motivo.errors|striptags }}</div>{% endif %}
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="{{ form.notas.id_for_label }}">Notas</label>
+      {{ form.notas }}
+      {% if form.notas.errors %}<div class="text-danger small">{{ form.notas.errors|striptags }}</div>{% endif %}
+    </div>
+
+    <button class="btn btn-primary">{% if object %}Guardar cambios{% else %}Crear cita{% endif %}</button>
+    <a class="btn btn-outline-secondary ms-2" href="{% url 'citas:lista' %}">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

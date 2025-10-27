@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "cuentas",
     "mascota",
     "panel",
+    "citas",
 ]
 
 MIDDLEWARE = [
@@ -78,5 +79,21 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/cuentas/redireccion/"
 LOGOUT_REDIRECT_URL = "/"
+
+# ==============================================================
+# Email - entorno de desarrollo
+# ==============================================================
+
+# En desarrollo, los correos se imprimen en consola (no se envían).
+# Esto permite probar password reset sin configurar SMTP.
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# Dirección "from" que verá el receptor del correo (consola en dev)
+DEFAULT_FROM_EMAIL = "no-reply@mascotaconectada.local"
+
+# Si ya tienes .env, lo ideal es parametrizar:
+# import os
+# EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+# DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@mascotaconectada.local")
 
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY", "")
