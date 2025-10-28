@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block titulo %}Citas (Panel){% endblock %}
+{% block contenido %}
+<div class="container my-4">
+  <h1 class="h4 mb-3">Citas</h1>
+
+  <form class="row g-2 mb-3" method="get">
+    <div class="col-sm-3">
+      <input type="text" name="q" class="form-control" placeholder="Buscar (mascota/dueño/motivo)" value="{{ f_buscar }}">
+    </div>
+    <div class="col-sm-3">
+      <select class="form-select" name="estado">
+        <option value="">— Estado —</option>
+        {% for value,label in estados %}
+          <option value="{{ value }}" {% if f_estado == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-3">
+      <select class="form-select" name="vet">
+        <option value="">— Veterinario —</option>
+        {% for v in vets %}
+          <option value="{{ v.id }}" {% if f_vet|add:'' == v.id|stringformat:"s" %}selected{% endif %}>{{ v.username }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-3">
+      <button class="btn btn-outline-secondary w-100">Filtrar</button>
+    </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Fecha/Hora</th>
+          <th>Mascota</th>
+          <th>Dueño</th>
+          <th>Vet</th>
+          <th>Motivo</th>
+          <th>Estado</th>
+          <th class="text-end">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in citas %}
+          <tr>
+            <td>{{ c.fecha_hora|date:"Y-m-d H:i" }}</td>
+            <td>{{ c.mascota.nombre }}</td>
+            <td>{{ c.dueno.username }}</td>
+            <td>{% if c.veterinario %}{{ c.veterinario.username }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+            <td>{{ c.motivo }}</td>
+            <td>
+              {% if c.estado == "CONFIRMADA" %}
+                <span class="badge text-bg-success">Confirmada</span>
+              {% elif c.estado == "CANCELADA" %}
+                <span class="badge text-bg-danger">Cancelada</span>
+              {% elif c.estado == "COMPLETADA" %}
+                <span class="badge text-bg-secondary">Completada</span>
+              {% else %}
+                <span class="badge text-bg-warning">Pendiente</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <!-- Asignar Vet -->
+              <form method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="asignar_vet">
+                <input type="hidden" name="cita_id" value="{{ c.id }}">
+                <select name="vet_id" class="form-select d-inline-block" style="width: 10rem;">
+                  <option value="">— Seleccionar vet —</option>
+                  {% for v in vets %}
+                    <option value="{{ v.id }}" {% if c.veterinario and c.veterinario.id == v.id %}selected{% endif %}>{{ v.username }}</option>
+                  {% endfor %}
+                </select>
+                <button class="btn btn-sm btn-outline-primary">Asignar</button>
+              </form>
+
+              <!-- Cambiar estado -->
+              <form method="post" class="d-inline ms-1">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="cambiar_estado">
+                <input type="hidden" name="cita_id" value="{{ c.id }}">
+                <select name="estado" class="form-select d-inline-block" style="width: 10rem;">
+                  <option value="PENDIENTE" {% if c.estado == "PENDIENTE" %}selected{% endif %}>Pendiente</option>
+                  <option value="CONFIRMADA" {% if c.estado == "CONFIRMADA" %}selected{% endif %}>Confirmada</option>
+                  <option value="COMPLETADA" {% if c.estado == "COMPLETADA" %}selected{% endif %}>Completada</option>
+                  <option value="CANCELADA" {% if c.estado == "CANCELADA" %}selected{% endif %}>Cancelada</option>
+                </select>
+                <button class="btn btn-sm btn-outline-secondary">Actualizar</button>
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No hay citas con estos filtros.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

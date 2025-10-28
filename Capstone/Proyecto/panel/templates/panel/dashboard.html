@@ -1,20 +1,17 @@
 {% extends "base.html" %}
-{% block titulo %}Panel — Dashboard{% endblock %}
+{% block titulo %}Panel{% endblock %}
 
 {% block contenido %}
 <div class="container my-4">
+  <h1 class="h4 mb-3">Panel de administración</h1>
 
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h4 mb-0">Panel de administración</h1>
-    <a class="btn btn-outline-primary" href="{% url 'panel:veterinarios_pendientes' %}">Veterinarios pendientes</a>
-  </div>
-
+  <!-- Métricas principales -->
   <div class="row g-3">
     <div class="col-md-3">
       <div class="card shadow-sm">
         <div class="card-body">
           <div class="text-muted small">Usuarios</div>
-          <div class="h4 mb-0">{{ total_users }}</div>
+          <div class="h3 mb-0">{{ total_usuarios }}</div>
         </div>
       </div>
     </div>
@@ -22,7 +19,7 @@
       <div class="card shadow-sm">
         <div class="card-body">
           <div class="text-muted small">Dueños</div>
-          <div class="h4 mb-0">{{ total_duenos }}</div>
+          <div class="h3 mb-0">{{ total_duenos }}</div>
         </div>
       </div>
     </div>
@@ -30,55 +27,47 @@
       <div class="card shadow-sm">
         <div class="card-body">
           <div class="text-muted small">Veterinarios</div>
-          <div class="h4 mb-0">{{ total_vets }}</div>
+          <div class="h3 mb-0">{{ total_vets }}</div>
+          <div class="small {% if total_vets_pend %}text-warning{% else %}text-muted{% endif %}">
+            Pendientes: {{ total_vets_pend }}
+          </div>
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card shadow-sm">
         <div class="card-body">
-          <div class="text-muted small">Vets pendientes</div>
-          <div class="h4 mb-0">{{ total_vets_pend }}</div>
+          <div class="text-muted small">Citas (total)</div>
+          <div class="h3 mb-2">{{ citas_total }}</div>
+
+          <!-- Resumen por estado con badges descriptivos -->
+          <div class="d-flex flex-wrap gap-1 align-items-center">
+            <span class="badge text-bg-warning" title="Pendiente">Pendiente: {{ citas_pend }}</span>
+            <span class="badge text-bg-success" title="Confirmada">Confirmada: {{ citas_conf }}</span>
+            <span class="badge text-bg-secondary" title="Completada">Completada: {{ citas_comp }}</span>
+            <span class="badge text-bg-danger" title="Cancelada">Cancelada: {{ citas_canc }}</span>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="card mt-4 shadow-sm">
-    <div class="card-header bg-white">
-      <strong>Usuarios recientes</strong>
-    </div>
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-hover mb-0 align-middle">
-          <thead>
-            <tr>
-              <th>Usuario</th>
-              <th>Nombre</th>
-              <th>Email</th>
-              <th>Staff</th>
-              <th>Superuser</th>
-              <th>Creado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for u in recientes %}
-              <tr>
-                <td>{{ u.username }}</td>
-                <td>{{ u.first_name }} {{ u.last_name }}</td>
-                <td>{{ u.email }}</td>
-                <td>{% if u.is_staff %}✔{% else %}—{% endif %}</td>
-                <td>{% if u.is_superuser %}✔{% else %}—{% endif %}</td>
-                <td>{{ u.date_joined|date:"Y-m-d H:i" }}</td>
-              </tr>
-            {% empty %}
-              <tr><td colspan="6" class="text-center text-muted py-4">Sin usuarios recientes.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+  <hr class="my-4">
 
+  <!-- Accesos rápidos -->
+  <div class="d-flex gap-2">
+    <a href="{% url 'panel:citas' %}" class="btn btn-primary">Gestionar citas</a>
+    <!-- Espacio para futuros accesos (usuarios/roles, reportes, etc.) -->
+  </div>
 </div>
+
+<!-- Inicializa tooltips de Bootstrap (por si se usan) -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.bootstrap) {
+      const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
+      tooltipTriggerList.forEach(function (el) { new bootstrap.Tooltip(el) })
+    }
+  });
+</script>
 {% endblock %}

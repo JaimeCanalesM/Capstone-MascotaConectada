@@ -49,6 +49,10 @@
             <li class="nav-item">
               <a class="nav-link" href="{% url 'citas:lista' %}">Mis citas</a>
             </li>
+            <!-- Mis atenciones -->
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'citas:mis_atenciones' %}">Mis atenciones</a>
+            </li>
             <!-- Acceso al Panel para staff/superuser (sin paréntesis en condiciones) -->
             {% if user.is_staff or user.is_superuser %}
               <li class="nav-item">

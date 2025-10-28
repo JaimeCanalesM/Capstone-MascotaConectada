@@ -1,3 +1,4 @@
+# citas/urls.py
 from django.urls import path
 from . import views
 
@@ -9,4 +10,8 @@ urlpatterns = [
     path("<int:pk>/", views.CitaDetail.as_view(), name="detalle"),
     path("<int:pk>/editar/", views.CitaUpdate.as_view(), name="editar"),
     path("<int:pk>/eliminar/", views.CitaDelete.as_view(), name="eliminar"),
+
+    # Veterinario
+    path("mis-atenciones/", views.CitasAsignadasList.as_view(), name="mis_atenciones"),
+    path("<int:pk>/cambiar-estado/", views.CitaCambiarEstadoView.as_view(), name="cambiar_estado"),
 ]

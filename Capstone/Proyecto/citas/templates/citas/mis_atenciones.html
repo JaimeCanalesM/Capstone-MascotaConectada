@@ -1,10 +1,9 @@
 {% extends "base.html" %}
-{% block titulo %}Mis citas{% endblock %}
+{% block titulo %}Mis atenciones{% endblock %}
 {% block contenido %}
 <div class="container my-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h4 mb-0">Mis citas</h1>
-    <a href="{% url 'citas:crear' %}" class="btn btn-primary">Nueva cita</a>
+    <h1 class="h4 mb-0">Citas asignadas</h1>
   </div>
 
   {% if citas %}
@@ -14,6 +13,7 @@
           <tr>
             <th>Fecha/Hora</th>
             <th>Mascota</th>
+            <th>Dueño</th>
             <th>Motivo</th>
             <th>Estado</th>
             <th class="text-end">Acciones</th>
@@ -24,6 +24,7 @@
             <tr>
               <td>{{ c.fecha_hora|date:"Y-m-d H:i" }}</td>
               <td>{{ c.mascota.nombre }}</td>
+              <td>{{ c.dueno.username }}</td>
               <td>{{ c.motivo }}</td>
               <td>
                 {% if c.estado == "CONFIRMADA" %}
@@ -38,9 +39,35 @@
               </td>
               <td class="text-end">
                 <a href="{% url 'citas:detalle' c.pk %}" class="btn btn-sm btn-outline-secondary">Ver</a>
-                <!-- Edición/Eliminación: dueño o staff -->
-                <a href="{% url 'citas:editar' c.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
-                <a href="{% url 'citas:eliminar' c.pk %}" class="btn btn-sm btn-outline-danger">Eliminar</a>
+
+                <!-- Acciones rápidas de estado -->
+                <form method="post" action="{% url 'citas:cambiar_estado' c.pk %}" class="d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="estado" value="CONFIRMADA">
+                  <button class="btn btn-sm btn-outline-primary"
+                          {% if c.estado == "CONFIRMADA" %}disabled{% endif %}>
+                    Confirmar
+                  </button>
+                </form>
+
+                <form method="post" action="{% url 'citas:cambiar_estado' c.pk %}" class="d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="estado" value="COMPLETADA">
+                  <button class="btn btn-sm btn-outline-success"
+                          {% if c.estado == "COMPLETADA" %}disabled{% endif %}>
+                    Completar
+                  </button>
+                </form>
+
+                <form method="post" action="{% url 'citas:cambiar_estado' c.pk %}" class="d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="estado" value="CANCELADA">
+                  <button class="btn btn-sm btn-outline-danger"
+                          {% if c.estado == "CANCELADA" %}disabled{% endif %}>
+                    Cancelar
+                  </button>
+                </form>
+
               </td>
             </tr>
           {% endfor %}
@@ -65,9 +92,8 @@
         </ul>
       </nav>
     {% endif %}
-
   {% else %}
-    <div class="alert alert-info">Aún no tienes citas.</div>
+    <div class="alert alert-info">No hay citas asignadas.</div>
   {% endif %}
 </div>
 {% endblock %}

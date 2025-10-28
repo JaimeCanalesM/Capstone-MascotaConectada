@@ -20,10 +20,11 @@
         <dt class="col-sm-4">Mascota</dt>
         <dd class="col-sm-8">{{ object.mascota.nombre }}</dd>
 
-        {% if object.clinica %}
-        <dt class="col-sm-4">Clínica</dt>
-        <dd class="col-sm-8">{{ object.clinica }}</dd>
-        {% endif %}
+        <dt class="col-sm-4">Dueño</dt>
+        <dd class="col-sm-8">{{ object.dueno.username }}</dd>
+
+        <dt class="col-sm-4">Veterinario</dt>
+        <dd class="col-sm-8">{% if object.veterinario %}{{ object.veterinario.username }}{% else %}<span class="text-muted">—</span>{% endif %}</dd>
 
         <dt class="col-sm-4">Motivo</dt>
         <dd class="col-sm-8">{{ object.motivo }}</dd>
