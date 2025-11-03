@@ -1,123 +1,79 @@
 # panel/views.py
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
+
 from django.contrib.auth import get_user_model
-from django.db.models import Count, Q
-from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
-from django.utils.decorators import method_decorator
-from django.views import View
+from mascota.models import Mascota
+from citas.models import Cita
+from historial.models import EventoClinico
+from cuentas.models import Perfil
 
 User = get_user_model()
 
-# Import local de Cita para evitar dependencias circulares si el panel crece
-from citas.models import Cita
 
-"""
-Vistas del panel propio (sin admin de Django).
-- Requiere staff o superuser.
-- Incluye métricas y gestión de citas (asignar veterinario, cambiar estado).
-"""
-
-@method_decorator(staff_member_required, name="dispatch")
-class DashboardView(View):
+def _es_admin(user):
     """
-    Panel principal con métricas de alto nivel y accesos rápidos.
+    Devuelve True si el usuario tiene permisos de administración.
+    Se usa en las vistas del panel para negar acceso a usuarios normales.
     """
-    template_name = "panel/dashboard.html"
-
-    def get(self, request):
-        # Métricas base
-        total_usuarios = User.objects.count()
-        total_duenos = User.objects.filter(perfil__rol="DUENO").count()
-        total_vets = User.objects.filter(perfil__rol="VET").count()
-        total_vets_pend = User.objects.filter(perfil__rol="VET", perfil__vet_estado="PENDIENTE").count()
-
-        # Métricas de citas
-        citas_total = Cita.objects.count()
-        citas_pend = Cita.objects.filter(estado="PENDIENTE").count()
-        citas_conf = Cita.objects.filter(estado="CONFIRMADA").count()
-        citas_comp = Cita.objects.filter(estado="COMPLETADA").count()
-        citas_canc = Cita.objects.filter(estado="CANCELADA").count()
-
-        ctx = {
-            "total_usuarios": total_usuarios,
-            "total_duenos": total_duenos,
-            "total_vets": total_vets,
-            "total_vets_pend": total_vets_pend,
-            "citas_total": citas_total,
-            "citas_pend": citas_pend,
-            "citas_conf": citas_conf,
-            "citas_comp": citas_comp,
-            "citas_canc": citas_canc,
-        }
-        return render(request, self.template_name, ctx)
+    return user.is_authenticated and (user.is_staff or user.is_superuser)
 
 
-@method_decorator(staff_member_required, name="dispatch")
-class CitasPanelListView(View):
+@login_required
+@user_passes_test(_es_admin)
+def dashboard(request):
     """
-    Listado de todas las citas para staff/superuser, con filtros básicos.
-    Permite asignar veterinario y cambiar estado vía POST en la misma vista.
+    Panel de administración resumido.
+    Muestra métricas básicas y pendientes de revisión.
     """
-    template_name = "panel/citas.html"
+    total_usuarios = User.objects.count()
+    total_mascotas = Mascota.objects.count()
+    total_citas = Cita.objects.count()
+    total_eventos = EventoClinico.objects.count()
 
-    def get(self, request):
-        qs = Cita.objects.select_related("mascota", "dueno", "veterinario")
-        estado = request.GET.get("estado", "").strip()
-        buscar = request.GET.get("q", "").strip()
-        vet_id = request.GET.get("vet", "").strip()
+    # veterinarios que se registraron como VET y están en pendiente
+    vets_pendientes = Perfil.objects.filter(rol="VET", vet_estado="PENDIENTE")
 
-        if estado:
-            qs = qs.filter(estado=estado)
-        if vet_id.isdigit():
-            qs = qs.filter(veterinario_id=int(vet_id))
-        if buscar:
-            qs = qs.filter(
-                Q(mascota__nombre__icontains=buscar) |
-                Q(dueno__username__icontains=buscar) |
-                Q(motivo__icontains=buscar)
-            )
+    # citas completadas pero que aún no tienen entrada de historial
+    citas_completadas = Cita.objects.filter(estado="COMPLETADA")
+    ids_mascotas_con_evento = (
+        EventoClinico.objects.values_list("mascota_id", flat=True).distinct()
+    )
+    citas_sin_historial = citas_completadas.exclude(mascota_id__in=ids_mascotas_con_evento)
 
-        vets = User.objects.filter(perfil__rol="VET", perfil__vet_estado="APROBADO").order_by("username")
-        estados = [("PENDIENTE","Pendiente"), ("CONFIRMADA","Confirmada"),
-                   ("COMPLETADA","Completada"), ("CANCELADA","Cancelada")]
+    contexto = {
+        "total_usuarios": total_usuarios,
+        "total_mascotas": total_mascotas,
+        "total_citas": total_citas,
+        "total_eventos": total_eventos,
+        "vets_pendientes": vets_pendientes,
+        "citas_sin_historial": citas_sin_historial,
+    }
+    return render(request, "panel/dashboard.html", contexto)
 
-        ctx = {"citas": qs.order_by("-fecha_hora")[:200], "vets": vets, "estados": estados,
-               "f_estado": estado, "f_buscar": buscar, "f_vet": vet_id}
-        return render(request, self.template_name, ctx)
 
-    def post(self, request):
-        """
-        Acciones:
-        - action=asignar_vet & cita_id & vet_id
-        - action=cambiar_estado & cita_id & estado
-        """
-        action = request.POST.get("action")
-        cita_id = request.POST.get("cita_id")
+@login_required
+@user_passes_test(_es_admin)
+def aprobar_vet(request, perfil_id):
+    """
+    Cambia el estado de un perfil de veterinario a APROBADO.
+    """
+    perfil = get_object_or_404(Perfil, pk=perfil_id, rol="VET")
+    perfil.vet_estado = "APROBADO"
+    perfil.save(update_fields=["vet_estado"])
+    messages.success(request, f"Veterinario '{perfil.user.username}' aprobado.")
+    return redirect("panel:dashboard")
 
-        cita = get_object_or_404(Cita, pk=cita_id)
 
-        if action == "asignar_vet":
-            vet_id = request.POST.get("vet_id")
-            if not vet_id:
-                messages.error(request, "Debe seleccionar un veterinario.")
-                return redirect(reverse("panel:citas"))
-            vet = get_object_or_404(User, pk=vet_id, perfil__rol="VET", perfil__vet_estado="APROBADO")
-            cita.veterinario = vet
-            cita.save(update_fields=["veterinario"])
-            messages.success(request, f"Veterinario asignado: {vet.username}.")
-            return redirect(reverse("panel:citas"))
-
-        if action == "cambiar_estado":
-            estado = request.POST.get("estado")
-            if estado not in ("PENDIENTE","CONFIRMADA","COMPLETADA","CANCELADA"):
-                messages.error(request, "Estado inválido.")
-                return redirect(reverse("panel:citas"))
-            cita.estado = estado
-            cita.save(update_fields=["estado"])
-            messages.success(request, f"Estado actualizado a {estado.title()}.")
-            return redirect(reverse("panel:citas"))
-
-        messages.error(request, "Acción no reconocida.")
-        return redirect(reverse("panel:citas"))
+@login_required
+@user_passes_test(_es_admin)
+def rechazar_vet(request, perfil_id):
+    """
+    Cambia el estado de un perfil de veterinario a RECHAZADO.
+    """
+    perfil = get_object_or_404(Perfil, pk=perfil_id, rol="VET")
+    perfil.vet_estado = "RECHAZADO"
+    perfil.save(update_fields=["vet_estado"])
+    messages.warning(request, f"Veterinario '{perfil.user.username}' rechazado.")
+    return redirect("panel:dashboard")

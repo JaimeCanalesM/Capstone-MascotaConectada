@@ -1,17 +1,17 @@
 # citas/urls.py
 from django.urls import path
+
 from . import views
 
 app_name = "citas"
 
 urlpatterns = [
     path("", views.CitaList.as_view(), name="lista"),
+    path("proximas/", views.ProximasCitas.as_view(), name="proximas"),
     path("crear/", views.CitaCreate.as_view(), name="crear"),
-    path("<int:pk>/", views.CitaDetail.as_view(), name="detalle"),
     path("<int:pk>/editar/", views.CitaUpdate.as_view(), name="editar"),
     path("<int:pk>/eliminar/", views.CitaDelete.as_view(), name="eliminar"),
-
-    # Veterinario
-    path("mis-atenciones/", views.CitasAsignadasList.as_view(), name="mis_atenciones"),
-    path("<int:pk>/cambiar-estado/", views.CitaCambiarEstadoView.as_view(), name="cambiar_estado"),
+    path("<int:pk>/completar/", views.CitaCompletar.as_view(), name="completar"),
+    path("<int:pk>/a-historial/", views.CitaToHistorial.as_view(), name="a_historial"),
+    path("mis-atenciones/", views.MisAtenciones.as_view(), name="mis_atenciones"),
 ]

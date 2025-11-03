@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block titulo %}Mis citas{% endblock %}
+{% block titulo %}Citas{% endblock %}
 {% block contenido %}
 <div class="container my-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h4 mb-0">Mis citas</h1>
-    <a href="{% url 'citas:crear' %}" class="btn btn-primary">Nueva cita</a>
+    <h1 class="h4 mb-0">Citas</h1>
+    <a href="{% url 'citas:crear' %}" class="btn btn-primary btn-sm">Nueva cita</a>
   </div>
 
   {% if citas %}
@@ -12,9 +12,11 @@
       <table class="table table-hover align-middle">
         <thead>
           <tr>
-            <th>Fecha/Hora</th>
+            <th>#</th>
             <th>Mascota</th>
-            <th>Motivo</th>
+            <th>Dueño</th>
+            <th>Fecha / hora</th>
+            <th>Clínica</th>
             <th>Estado</th>
             <th class="text-end">Acciones</th>
           </tr>
@@ -22,52 +24,104 @@
         <tbody>
           {% for c in citas %}
             <tr>
-              <td>{{ c.fecha_hora|date:"Y-m-d H:i" }}</td>
-              <td>{{ c.mascota.nombre }}</td>
-              <td>{{ c.motivo }}</td>
+              <td>{{ c.id }}</td>
               <td>
-                {% if c.estado == "CONFIRMADA" %}
-                  <span class="badge text-bg-success">Confirmada</span>
+                {% if c.mascota %}
+                  {{ c.mascota.nombre }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td>
+                {% if c.dueno %}
+                  {{ c.dueno.username }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td>{{ c.fecha_hora|date:"d/m/Y H:i" }}</td>
+              <td>
+                {% if c.clinica %}
+                  {{ c.clinica.nombre }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td>
+                {% if c.estado == "PENDIENTE" %}
+                  <span class="badge text-bg-warning">Pendiente</span>
+                {% elif c.estado == "ATENDIDA" %}
+                  <span class="badge text-bg-success">Completada</span>
                 {% elif c.estado == "CANCELADA" %}
                   <span class="badge text-bg-danger">Cancelada</span>
-                {% elif c.estado == "COMPLETADA" %}
-                  <span class="badge text-bg-secondary">Completada</span>
                 {% else %}
-                  <span class="badge text-bg-warning">Pendiente</span>
+                  <span class="badge text-bg-secondary">{{ c.estado }}</span>
                 {% endif %}
               </td>
               <td class="text-end">
-                <a href="{% url 'citas:detalle' c.pk %}" class="btn btn-sm btn-outline-secondary">Ver</a>
-                <!-- Edición/Eliminación: dueño o staff -->
-                <a href="{% url 'citas:editar' c.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
-                <a href="{% url 'citas:eliminar' c.pk %}" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                <div class="btn-group">
+                  <a href="{% url 'citas:editar' c.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                  <a href="{% url 'citas:eliminar' c.id %}" class="btn btn-sm btn-outline-danger">Borrar</a>
+                </div>
+
+                {# acciones extra solo para vet aprobado o staff #}
+                {% if user.is_authenticated %}
+                  {% if user.is_staff %}
+                    {% if c.estado != "ATENDIDA" %}
+                      <form method="post" action="{% url 'citas:completar' c.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-success ms-1">Marcar completada</button>
+                      </form>
+                    {% else %}
+                      {% if c.mascota %}
+                        <form method="post" action="{% url 'citas:a_historial' c.id %}" class="d-inline">
+                          {% csrf_token %}
+                          <button class="btn btn-sm btn-secondary ms-1">→ historial</button>
+                        </form>
+                      {% endif %}
+                    {% endif %}
+                  {% elif user.is_superuser %}
+                    {% if c.estado != "ATENDIDA" %}
+                      <form method="post" action="{% url 'citas:completar' c.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-success ms-1">Marcar completada</button>
+                      </form>
+                    {% else %}
+                      {% if c.mascota %}
+                        <form method="post" action="{% url 'citas:a_historial' c.id %}" class="d-inline">
+                          {% csrf_token %}
+                          <button class="btn btn-sm btn-secondary ms-1">→ historial</button>
+                        </form>
+                      {% endif %}
+                    {% endif %}
+                  {% else %}
+                    {% if user.perfil %}
+                      {% if user.perfil.rol == "VET" and user.perfil.vet_estado == "APROBADO" %}
+                        {% if c.estado != "ATENDIDA" %}
+                          <form method="post" action="{% url 'citas:completar' c.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button class="btn btn-sm btn-success ms-1">Marcar completada</button>
+                          </form>
+                        {% else %}
+                          {% if c.mascota %}
+                            <form method="post" action="{% url 'citas:a_historial' c.id %}" class="d-inline">
+                              {% csrf_token %}
+                              <button class="btn btn-sm btn-secondary ms-1">→ historial</button>
+                            </form>
+                          {% endif %}
+                        {% endif %}
+                      {% endif %}
+                    {% endif %}
+                  {% endif %}
+                {% endif %}
               </td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-
-    {% if is_paginated %}
-      <nav class="mt-3">
-        <ul class="pagination">
-          {% if page_obj.has_previous %}
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
-          {% else %}
-            <li class="page-item disabled"><span class="page-link">Anterior</span></li>
-          {% endif %}
-          <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
-          {% if page_obj.has_next %}
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
-          {% else %}
-            <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
-          {% endif %}
-        </ul>
-      </nav>
-    {% endif %}
-
   {% else %}
-    <div class="alert alert-info">Aún no tienes citas.</div>
+    <p>No hay citas registradas.</p>
   {% endif %}
 </div>
 {% endblock %}

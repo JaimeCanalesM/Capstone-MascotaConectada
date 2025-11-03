@@ -31,6 +31,9 @@ urlpatterns = [
     ),
     path("accounts/logout/", LogoutWithMessageView.as_view(), name="logout"),
     path("accounts/", include("django.contrib.auth.urls")),
+
+    # NUEVO: historial
+    path("historial/", include(("historial.urls", "historial"), namespace="historial")),
 ]
 
 if settings.DEBUG:

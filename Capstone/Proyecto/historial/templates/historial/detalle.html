@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block titulo %}Evento clínico — {{ mascota.nombre }}{% endblock %}
+
+{% block contenido %}
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Evento clínico — {{ mascota.nombre }}</h1>
+    <div>
+      {% if user.is_authenticated %}
+        {% if user.is_staff %}
+          <a href="{% url 'historial:editar' mascota.id evento.id %}" class="btn btn-outline-primary btn-sm">Editar</a>
+          <form method="post" action="{% url 'historial:eliminar' mascota.id evento.id %}" class="d-inline">
+            {% csrf_token %}
+            <button class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Eliminar este evento?');">Eliminar</button>
+          </form>
+        {% elif user.is_superuser %}
+          <a href="{% url 'historial:editar' mascota.id evento.id %}" class="btn btn-outline-primary btn-sm">Editar</a>
+          <form method="post" action="{% url 'historial:eliminar' mascota.id evento.id %}" class="d-inline">
+            {% csrf_token %}
+            <button class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Eliminar este evento?');">Eliminar</button>
+          </form>
+        {% else %}
+          {% if user.perfil %}
+            {% if user.perfil.rol == "VET" and user.perfil.vet_estado == "APROBADO" %}
+              <a href="{% url 'historial:editar' mascota.id evento.id %}" class="btn btn-outline-primary btn-sm">Editar</a>
+              <form method="post" action="{% url 'historial:eliminar' mascota.id evento.id %}" class="d-inline">
+                {% csrf_token %}
+                <button class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Eliminar este evento?');">Eliminar</button>
+              </form>
+            {% endif %}
+          {% endif %}
+        {% endif %}
+      {% endif %}
+      <a href="{% url 'historial:lista' mascota.id %}" class="btn btn-secondary btn-sm">Volver</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <!-- si el campo es DateField -->
+      <p class="mb-1"><strong>Fecha:</strong> {{ evento.fecha|date:"d/m/Y" }}</p>
+      <!-- si algún día lo cambias a DateTimeField, usa esto: -->
+      {# <p class="mb-1"><strong>Fecha:</strong> {{ evento.fecha|date:"d/m/Y H:i" }}</p> #}
+
+      <p class="mb-1"><strong>Tipo:</strong> {{ evento.get_tipo_display }}</p>
+
+      {% if evento.veterinario %}
+        <p class="mb-1"><strong>Veterinario:</strong> {{ evento.veterinario.username }}</p>
+      {% endif %}
+
+      {% if evento.clinica %}
+        <p class="mb-1"><strong>Clínica:</strong> {{ evento.clinica.nombre }}</p>
+      {% endif %}
+
+      <hr>
+      <p class="mb-0"><strong>Descripción / notas:</strong></p>
+      <p>{{ evento.descripcion|linebreaks }}</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

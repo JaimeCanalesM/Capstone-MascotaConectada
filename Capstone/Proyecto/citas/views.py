@@ -1,68 +1,66 @@
 # citas/views.py
+from datetime import datetime, timedelta
+
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView, View
+from django.views import View
+from django.views.generic import (
+    ListView,
+    CreateView,
+    UpdateView,
+    DeleteView,
+)
 
-from .forms import CitaForm
 from .models import Cita
-
-"""
-Vistas de agenda (citas):
-- Lista/detalle/crear/editar/eliminar para dueños (y staff).
-- "Mis atenciones" para veterinarios (citas asignadas a él).
-- Acciones rápidas para cambiar estado (vet y staff).
-"""
-
-class DuenoOrVetQuerysetMixin:
-    """
-    Filtra el queryset según el rol del usuario:
-    - staff/superuser: ve todo
-    - vet: ve citas asignadas a él
-    - dueños: ven solo sus citas
-    """
-    def get_queryset(self):
-        qs = Cita.objects.select_related("mascota", "dueno", "veterinario")
-        u = self.request.user
-        if not u.is_authenticated:
-            return qs.none()
-        if u.is_superuser or u.is_staff:
-            return qs
-        perfil = getattr(u, "perfil", None)
-        if perfil and getattr(perfil, "rol", None) == "VET":
-            return qs.filter(veterinario=u)
-        return qs.filter(dueno=u)
+from .forms import CitaForm
+from historial.models import EventoClinico
 
 
-class CitaList(LoginRequiredMixin, DuenoOrVetQuerysetMixin, ListView):
+# valores de estado usados en el modelo Cita (mantener igual que en models.py)
+ESTADO_PENDIENTE = "PENDIENTE"
+ESTADO_ATENDIDA = "ATENDIDA"
+ESTADO_CANCELADA = "CANCELADA"
+
+
+class CitaList(LoginRequiredMixin, ListView):
     model = Cita
     template_name = "citas/lista.html"
     context_object_name = "citas"
-    paginate_by = 10
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = Cita.objects.select_related("mascota", "dueno", "clinica", "veterinario")
+
+        # dueño ve solo las suyas
+        if hasattr(user, "perfil") and user.perfil and user.perfil.rol == "DUE":
+            qs = qs.filter(dueno=user)
+        # vet ve solo las asignadas
+        elif hasattr(user, "perfil") and user.perfil and user.perfil.rol == "VET":
+            qs = qs.filter(veterinario=user)
+        # admin ve todas
+
+        return qs.order_by("-fecha_hora")
 
 
-class CitaDetail(LoginRequiredMixin, DuenoOrVetQuerysetMixin, DetailView):
+class ProximasCitas(LoginRequiredMixin, ListView):
     model = Cita
-    template_name = "citas/detalle.html"
-    context_object_name = "cita"
+    template_name = "citas/proximas.html"
+    context_object_name = "citas"
 
+    def get_queryset(self):
+        ahora = datetime.now()
+        limite = ahora + timedelta(days=7)
+        user = self.request.user
+        qs = Cita.objects.filter(fecha_hora__gte=ahora, fecha_hora__lte=limite)
 
-class CitaOwnerRequiredMixin(UserPassesTestMixin):
-    """
-    Restringe edición/eliminación a dueño o staff.
-    (Vet no edita desde aquí para simplificar; si se requiere, habilitar transición separada).
-    """
-    def test_func(self):
-        u = self.request.user
-        if u.is_superuser or u.is_staff:
-            return True
-        obj = self.get_object()
-        return obj.dueno_id == u.id
+        if hasattr(user, "perfil") and user.perfil and user.perfil.rol == "DUE":
+            qs = qs.filter(dueno=user)
+        elif hasattr(user, "perfil") and user.perfil and user.perfil.rol == "VET":
+            qs = qs.filter(veterinario=user)
 
-    def handle_no_permission(self):
-        messages.error(self.request, "No tienes permisos para esta acción.")
-        return redirect("citas:lista")
+        return qs.order_by("fecha_hora")
 
 
 class CitaCreate(LoginRequiredMixin, CreateView):
@@ -73,18 +71,22 @@ class CitaCreate(LoginRequiredMixin, CreateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs["user"] = self.request.user  # Para filtrar mascotas del dueño
+        # el form puede filtrar mascotas por usuario
+        kwargs["user"] = self.request.user
         return kwargs
 
     def form_valid(self, form):
         cita = form.save(commit=False)
         cita.dueno = self.request.user
+        # por defecto pendiente
+        if not cita.estado:
+            cita.estado = ESTADO_PENDIENTE
         cita.save()
         messages.success(self.request, "Cita creada correctamente.")
         return super().form_valid(form)
 
 
-class CitaUpdate(LoginRequiredMixin, CitaOwnerRequiredMixin, UpdateView):
+class CitaUpdate(LoginRequiredMixin, UpdateView):
     model = Cita
     form_class = CitaForm
     template_name = "citas/form.html"
@@ -100,7 +102,7 @@ class CitaUpdate(LoginRequiredMixin, CitaOwnerRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class CitaDelete(LoginRequiredMixin, CitaOwnerRequiredMixin, DeleteView):
+class CitaDelete(LoginRequiredMixin, DeleteView):
     model = Cita
     template_name = "citas/confirm_delete.html"
     success_url = reverse_lazy("citas:lista")
@@ -110,62 +112,79 @@ class CitaDelete(LoginRequiredMixin, CitaOwnerRequiredMixin, DeleteView):
         return super().delete(request, *args, **kwargs)
 
 
-# ---------- Vistas para VETERINARIO ----------
+class CitaCompletar(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        cita = get_object_or_404(Cita, pk=pk)
 
-class VetOnlyMixin(UserPassesTestMixin):
-    """Permite el acceso solo a usuario con perfil VET aprobado o staff/superuser."""
-    def test_func(self):
-        u = self.request.user
-        if not u.is_authenticated:
-            return False
-        if u.is_superuser or u.is_staff:
-            return True
-        p = getattr(u, "perfil", None)
-        return bool(p and p.rol == "VET" and getattr(p, "vet_estado", "") == "APROBADO")
+        # control de permisos
+        u = request.user
+        puede = False
+        if u.is_staff or u.is_superuser:
+            puede = True
+        elif hasattr(u, "perfil") and u.perfil and u.perfil.rol == "VET" and u.perfil.vet_estado == "APROBADO":
+            puede = True
 
-    def handle_no_permission(self):
-        messages.error(self.request, "No tienes permisos para esta sección.")
+        if not puede:
+            messages.error(request, "No tiene permisos para completar esta cita.")
+            return redirect("citas:lista")
+
+        cita.estado = ESTADO_ATENDIDA
+        cita.save()
+        messages.success(request, "Cita marcada como atendida.")
         return redirect("citas:lista")
 
 
-class CitasAsignadasList(LoginRequiredMixin, VetOnlyMixin, ListView):
-    """Lista de citas asignadas al veterinario autenticado (o staff ve todas)."""
+class CitaToHistorial(LoginRequiredMixin, View):
+    """
+    Convierte una cita ATENDIDA en un evento clínico.
+    """
+
+    def post(self, request, pk):
+        cita = get_object_or_404(Cita, pk=pk)
+
+        # permisos
+        u = request.user
+        puede = False
+        if u.is_staff or u.is_superuser:
+            puede = True
+        elif hasattr(u, "perfil") and u.perfil and u.perfil.rol == "VET" and u.perfil.vet_estado == "APROBADO":
+            puede = True
+
+        if not puede:
+            messages.error(request, "No tiene permisos para enviar esta cita al historial.")
+            return redirect("citas:lista")
+
+        if not cita.mascota:
+            messages.error(request, "La cita no tiene mascota asociada.")
+            return redirect("citas:lista")
+
+        # crear evento
+        EventoClinico.objects.create(
+            mascota=cita.mascota,
+            fecha=cita.fecha_hora.date() if cita.fecha_hora else datetime.now().date(),
+            tipo="CONSULTA",
+            veterinario=cita.veterinario,
+            descripcion=f"Atención generada desde la cita #{cita.id}. Motivo: {cita.motivo or '—'}",
+        )
+
+        # asegurar que la cita queda atendida
+        cita.estado = ESTADO_ATENDIDA
+        cita.save()
+
+        messages.success(request, "Se creó el evento en el historial de la mascota.")
+        return redirect("historial:lista", mascota_id=cita.mascota.id)
+
+
+class MisAtenciones(LoginRequiredMixin, ListView):
     model = Cita
     template_name = "citas/mis_atenciones.html"
     context_object_name = "citas"
-    paginate_by = 10
 
     def get_queryset(self):
-        qs = Cita.objects.select_related("mascota", "dueno", "veterinario")
         u = self.request.user
-        if u.is_superuser or u.is_staff:
+        qs = Cita.objects.filter(estado=ESTADO_ATENDIDA)
+        if u.is_staff or u.is_superuser:
             return qs.order_by("-fecha_hora")
-        return qs.filter(veterinario=u).order_by("-fecha_hora")
-
-
-class CitaCambiarEstadoView(LoginRequiredMixin, VetOnlyMixin, View):
-    """
-    Cambia el estado de una cita (CONFIRMAR, COMPLETAR, CANCELAR) por parte del veterinario o staff.
-    Restricciones simples:
-    - Solo sobre citas asignadas al propio veterinario (salvo staff).
-    - Estados válidos: CONFIRMADA, COMPLETADA, CANCELADA.
-    """
-    def post(self, request, pk):
-        cita = get_object_or_404(Cita, pk=pk)
-        u = request.user
-
-        # Si no es staff/superuser, debe ser el vet asignado
-        if not (u.is_superuser or u.is_staff):
-            if cita.veterinario_id != u.id:
-                messages.error(request, "La cita no está asignada a usted.")
-                return redirect("citas:mis_atenciones")
-
-        nuevo = request.POST.get("estado")
-        if nuevo not in ("CONFIRMADA", "COMPLETADA", "CANCELADA"):
-            messages.error(request, "Estado inválido.")
-            return redirect("citas:mis_atenciones")
-
-        cita.estado = nuevo
-        cita.save(update_fields=["estado"])
-        messages.success(request, f"Estado actualizado a {nuevo.title()}.")
-        return redirect("citas:mis_atenciones")
+        if hasattr(u, "perfil") and u.perfil and u.perfil.rol == "VET":
+            return qs.filter(veterinario=u).order_by("-fecha_hora")
+        return qs.none()

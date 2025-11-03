@@ -38,7 +38,7 @@
               </p>
             {% endif %}
           {% else %}
-            <p class="text-muted mb-0">No hay perfil asociado todavía.</p>
+            <p class="text-muted mb-0">Este usuario aún no tiene perfil extendido.</p>
           {% endif %}
         </div>
       </div>
@@ -46,10 +46,8 @@
   </div>
 
   <div class="mt-4">
-    {% if user.is_authenticated %}
-      {% if user.is_staff or user.is_superuser %}
-        <a href="{% url 'panel:dashboard' %}" class="btn btn-outline-primary btn-sm">Ir al panel de administración</a>
-      {% endif %}
+    {% if user.is_staff or user.is_superuser %}
+      <a href="{% url 'panel:dashboard' %}" class="btn btn-outline-primary btn-sm">Ir al panel de administración</a>
     {% endif %}
   </div>
 </div>

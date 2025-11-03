@@ -1,73 +1,128 @@
 {% extends "base.html" %}
-{% block titulo %}Panel{% endblock %}
-
+{% block titulo %}Panel de administración{% endblock %}
 {% block contenido %}
 <div class="container my-4">
-  <h1 class="h4 mb-3">Panel de administración</h1>
+  <h1 class="h4 mb-4">Panel de administración</h1>
 
   <!-- Métricas principales -->
-  <div class="row g-3">
+  <div class="row g-3 mb-4">
     <div class="col-md-3">
-      <div class="card shadow-sm">
+      <div class="card text-bg-light h-100">
         <div class="card-body">
-          <div class="text-muted small">Usuarios</div>
-          <div class="h3 mb-0">{{ total_usuarios }}</div>
+          <h6 class="text-muted mb-1">Usuarios</h6>
+          <div class="display-6">{{ total_usuarios }}</div>
+          <small class="text-muted">registrados en el sistema</small>
         </div>
       </div>
     </div>
     <div class="col-md-3">
-      <div class="card shadow-sm">
+      <div class="card text-bg-light h-100">
         <div class="card-body">
-          <div class="text-muted small">Dueños</div>
-          <div class="h3 mb-0">{{ total_duenos }}</div>
+          <h6 class="text-muted mb-1">Mascotas</h6>
+          <div class="display-6">{{ total_mascotas }}</div>
+          <small class="text-muted">vinculadas a dueños</small>
         </div>
       </div>
     </div>
     <div class="col-md-3">
-      <div class="card shadow-sm">
+      <div class="card text-bg-light h-100">
         <div class="card-body">
-          <div class="text-muted small">Veterinarios</div>
-          <div class="h3 mb-0">{{ total_vets }}</div>
-          <div class="small {% if total_vets_pend %}text-warning{% else %}text-muted{% endif %}">
-            Pendientes: {{ total_vets_pend }}
-          </div>
+          <h6 class="text-muted mb-1">Citas</h6>
+          <div class="display-6">{{ total_citas }}</div>
+          <small class="text-muted">agendadas</small>
         </div>
       </div>
     </div>
     <div class="col-md-3">
-      <div class="card shadow-sm">
+      <div class="card text-bg-light h-100">
         <div class="card-body">
-          <div class="text-muted small">Citas (total)</div>
-          <div class="h3 mb-2">{{ citas_total }}</div>
-
-          <!-- Resumen por estado con badges descriptivos -->
-          <div class="d-flex flex-wrap gap-1 align-items-center">
-            <span class="badge text-bg-warning" title="Pendiente">Pendiente: {{ citas_pend }}</span>
-            <span class="badge text-bg-success" title="Confirmada">Confirmada: {{ citas_conf }}</span>
-            <span class="badge text-bg-secondary" title="Completada">Completada: {{ citas_comp }}</span>
-            <span class="badge text-bg-danger" title="Cancelada">Cancelada: {{ citas_canc }}</span>
-          </div>
+          <h6 class="text-muted mb-1">Eventos clínicos</h6>
+          <div class="display-6">{{ total_eventos }}</div>
+          <small class="text-muted">registrados en historial</small>
         </div>
       </div>
     </div>
   </div>
 
-  <hr class="my-4">
-
-  <!-- Accesos rápidos -->
-  <div class="d-flex gap-2">
-    <a href="{% url 'panel:citas' %}" class="btn btn-primary">Gestionar citas</a>
-    <!-- Espacio para futuros accesos (usuarios/roles, reportes, etc.) -->
+  <!-- Veterinarios pendientes -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Solicitudes de veterinario</h5>
+      <small class="text-muted">Usuarios que marcaron "soy veterinario"</small>
+    </div>
+    <div class="card-body p-0">
+      {% if vets_pendientes %}
+        <div class="table-responsive">
+          <table class="table mb-0 align-middle">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Email</th>
+                <th>Estado actual</th>
+                <th class="text-end">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for v in vets_pendientes %}
+                <tr>
+                  <td>{{ v.user.username }}</td>
+                  <td>{{ v.user.email }}</td>
+                  <td><span class="badge text-bg-warning">PENDIENTE</span></td>
+                  <td class="text-end">
+                    <a href="{% url 'panel:aprobar_vet' v.id %}" class="btn btn-sm btn-success">Aprobar</a>
+                    <a href="{% url 'panel:rechazar_vet' v.id %}" class="btn btn-sm btn-outline-danger">Rechazar</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="p-3 mb-0 text-muted">No hay solicitudes pendientes.</p>
+      {% endif %}
+    </div>
   </div>
+
+  <!-- Citas completadas pero sin historial -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Citas completadas sin historial</h5>
+      <small class="text-muted">Sugerencia: convertir en evento clínico</small>
+    </div>
+    <div class="card-body p-0">
+      {% if citas_sin_historial %}
+        <div class="table-responsive">
+          <table class="table mb-0 align-middle">
+            <thead>
+              <tr>
+                <th>ID cita</th>
+                <th>Mascota</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th class="text-end">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in citas_sin_historial %}
+                <tr>
+                  <td>#{{ c.id }}</td>
+                  <td>{{ c.mascota.nombre }}</td>
+                  <td>{{ c.fecha|date:"Y-m-d" }}</td>
+                  <td>{{ c.hora|time:"H:i" }}</td>
+                  <td class="text-end">
+                    <a href="{% url 'citas:a_historial' c.id %}" class="btn btn-sm btn-primary">→ historial</a>
+                    <a href="{% url 'citas:editar' c.id %}" class="btn btn-sm btn-outline-secondary">Ver cita</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="p-3 mb-0 text-muted">No hay citas pendientes de pasar a historial.</p>
+      {% endif %}
+    </div>
+  </div>
+
 </div>
-
-<!-- Inicializa tooltips de Bootstrap (por si se usan) -->
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    if (window.bootstrap) {
-      const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
-      tooltipTriggerList.forEach(function (el) { new bootstrap.Tooltip(el) })
-    }
-  });
-</script>
 {% endblock %}

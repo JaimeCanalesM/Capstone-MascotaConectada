@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     "mascota",
     "panel",
     "citas",
+    "historial",
 ]
 
 MIDDLEWARE = [

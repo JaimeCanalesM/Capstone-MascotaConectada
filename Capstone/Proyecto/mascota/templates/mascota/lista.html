@@ -18,12 +18,23 @@
             <div class="card-body">
               <h5 class="card-title mb-1">{{ m.nombre }}</h5>
               <div class="text-muted small">{{ m.especie }}{% if m.raza %} · {{ m.raza }}{% endif %}</div>
-              {% if m.sexo %}<div class="small mt-1">Sexo: {{ m.get_sexo_display }}</div>{% endif %}
+              {% if m.fecha_nacimiento %}
+                <div class="small text-muted">Nac.: {{ m.fecha_nacimiento|date:"Y-m-d" }}</div>
+              {% endif %}
+              {% if m.peso %}
+                <div class="small text-muted">Peso: {{ m.peso }} kg</div>
+              {% endif %}
+              {% if m.notas %}
+                <p class="mt-2 small text-muted" style="white-space: pre-wrap;">{{ m.notas|truncatechars:120 }}</p>
+              {% endif %}
             </div>
-            <div class="card-footer bg-white d-flex gap-2">
-              <a class="btn btn-sm btn-outline-secondary" href="{% url 'mascota:detalle' m.pk %}">Ver</a>
-              <a class="btn btn-sm btn-outline-primary" href="{% url 'mascota:editar' m.pk %}">Editar</a>
-              <a class="btn btn-sm btn-outline-danger" href="{% url 'mascota:eliminar' m.pk %}">Eliminar</a>
+            <div class="card-footer d-flex justify-content-between">
+              <div class="btn-group">
+                <a href="{% url 'mascota:detalle' m.pk %}" class="btn btn-sm btn-outline-secondary">Ver</a>
+                <a href="{% url 'mascota:editar' m.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                <a href="{% url 'mascota:eliminar' m.pk %}" class="btn btn-sm btn-outline-danger">Eliminar</a>
+              </div>
+              <a href="{% url 'historial:lista' m.id %}" class="btn btn-sm btn-success">Historial</a>
             </div>
           </div>
         </div>

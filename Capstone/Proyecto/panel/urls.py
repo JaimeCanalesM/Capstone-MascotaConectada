@@ -1,10 +1,11 @@
 # panel/urls.py
 from django.urls import path
-from .views import DashboardView, CitasPanelListView
+from . import views
 
 app_name = "panel"
 
 urlpatterns = [
-    path("", DashboardView.as_view(), name="dashboard"),
-    path("citas/", CitasPanelListView.as_view(), name="citas"),
+    path("", views.dashboard, name="dashboard"),
+    path("vets/<int:perfil_id>/aprobar/", views.aprobar_vet, name="aprobar_vet"),
+    path("vets/<int:perfil_id>/rechazar/", views.rechazar_vet, name="rechazar_vet"),
 ]

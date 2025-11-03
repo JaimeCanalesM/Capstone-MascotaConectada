@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block titulo %}Próximas citas{% endblock %}
+{% block contenido %}
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Próximas citas</h1>
+    <a href="{% url 'citas:crear' %}" class="btn btn-primary btn-sm">Agendar cita</a>
+  </div>
+
+  {% if citas %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Mascota</th>
+            <th>Motivo</th>
+            <th>Dueño</th>
+            <th>Estado</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in citas %}
+            <tr>
+              <td>{{ c.fecha|date:"d-m-Y" }}</td>
+              <td>{{ c.hora|time:"H:i" }}</td>
+              <td>{{ c.mascota.nombre }}</td>
+              <td>{{ c.motivo }}</td>
+              <td>
+                {% if c.mascota.DUENO %}
+                  {{ c.mascota.DUENO.username }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td>
+                {% if c.estado == "PENDIENTE" %}
+                  <span class="badge text-bg-warning">Pendiente</span>
+                {% elif c.estado == "CONFIRMADA" %}
+                  <span class="badge text-bg-info">Confirmada</span>
+                {% elif c.estado == "COMPLETADA" %}
+                  <span class="badge text-bg-success">Completada</span>
+                {% else %}
+                  <span class="badge text-bg-secondary">{{ c.estado }}</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <a href="{% url 'citas:editar' c.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                <a href="{% url 'citas:eliminar' c.id %}" class="btn btn-sm btn-outline-danger">Borrar</a>
+
+                {% if user.is_staff or user.is_superuser %}
+                  {% if c.estado != "COMPLETADA" %}
+                    <a href="{% url 'citas:completar' c.id %}" class="btn btn-sm btn-success ms-1">Completar</a>
+                  {% endif %}
+                {% else %}
+                  {% if user.perfil and user.perfil.rol == "VET" and user.perfil.vet_estado == "APROBADO" %}
+                    {% if c.estado != "COMPLETADA" %}
+                      <a href="{% url 'citas:completar' c.id %}" class="btn btn-sm btn-success ms-1">Completar</a>
+                    {% endif %}
+                  {% endif %}
+                {% endif %}
+
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info">No hay citas próximas.</div>
+  {% endif %}
+</div>
+{% endblock %}
