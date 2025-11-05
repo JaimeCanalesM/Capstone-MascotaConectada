@@ -43,6 +43,7 @@
             <li class="nav-item"><a class="nav-link" href="{% url 'mascota:lista' %}">Mis mascotas</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'citas:lista' %}">Citas</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'citas:proximas' %}">Próximas</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'core:nosotros' %}">Nosotros</a></li> 
 
             <!-- Solo muestro Admin si es staff o veterinario aprobado -->
             {% if user.is_authenticated %}
@@ -143,6 +144,6 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
+    <script type="text/javascript" async src="https://tenor.com/embed.js"></script>
   </body>
 </html>
