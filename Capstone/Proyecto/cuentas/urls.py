@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import RegistroView, redireccion_post_login, perfil
+from django.views.generic import TemplateView
 
 app_name = "cuentas"
 

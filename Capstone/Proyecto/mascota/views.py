@@ -6,7 +6,7 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, D
 
 from .models import Mascota
 from .forms import MascotaForm
-from cuentas.utils import require_dueno, is_admin_like
+from cuentas.utils import is_admin_like
 
 class MascotaList(LoginRequiredMixin, ListView):
     model = Mascota
@@ -15,16 +15,12 @@ class MascotaList(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         user = self.request.user
-        # dueño ve solo sus mascotas
-        if hasattr(user, "perfil") and user.perfil.rol == "DUE":
+        if hasattr(user, "perfil") and user.perfil.rol == "DUENO":
             return Mascota.objects.filter(DUENO=user).order_by("nombre")
-        # admin ve todas
         if is_admin_like(user):
             return Mascota.objects.all().order_by("DUENO__username", "nombre")
-        # vet aprobado puede ver todas (puede cambiarse a “solo atendidas”)
         if hasattr(user, "perfil") and user.perfil.rol == "VET":
             return Mascota.objects.all().order_by("DUENO__username", "nombre")
-        # fallback
         return Mascota.objects.none()
 
 
@@ -35,8 +31,8 @@ class MascotaCreate(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy("mascota:lista")
 
     def form_valid(self, form):
-        # solo dueño puede crear su mascota
-        require_dueno(self.request.user)
+        if hasattr(self.request.user, "perfil") and self.request.user.perfil.rol != "DUENO":
+            raise PermissionDenied("Solo los dueños pueden registrar mascotas.")
         form.instance.DUENO = self.request.user
         return super().form_valid(form)
 
@@ -53,7 +49,7 @@ class MascotaUpdate(LoginRequiredMixin, UpdateView):
         if is_admin_like(user):
             return obj
         if obj.DUENO != user:
-            raise PermissionDenied("No puede editar esta mascota.")
+            raise PermissionDenied("No puedes editar esta mascota.")
         return obj
 
 
@@ -68,7 +64,7 @@ class MascotaDelete(LoginRequiredMixin, DeleteView):
         if is_admin_like(user):
             return obj
         if obj.DUENO != user:
-            raise PermissionDenied("No puede eliminar esta mascota.")
+            raise PermissionDenied("No puedes eliminar esta mascota.")
         return obj
 
 
@@ -84,7 +80,6 @@ class MascotaDetail(LoginRequiredMixin, DetailView):
             return obj
         if obj.DUENO == user:
             return obj
-        # vet aprobado puede ver
         if hasattr(user, "perfil") and user.perfil.rol == "VET" and user.perfil.vet_estado == "APROBADO":
             return obj
-        raise PermissionDenied("No puede ver esta mascota.")
+        raise PermissionDenied("No puedes ver esta mascota.")
