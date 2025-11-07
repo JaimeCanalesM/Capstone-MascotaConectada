@@ -1,13 +1,13 @@
 # historial/urls.py
 from django.urls import path
-from . import views
+from .views import EventoClinicoList, EventoClinicoDetail, EventoClinicoCreate, EventoClinicoUpdate, EventoClinicoDelete
 
 app_name = "historial"
 
 urlpatterns = [
-    path("mascota/<int:mascota_id>/", views.EventoClinicoList.as_view(), name="lista"),
-    path("mascota/<int:mascota_id>/nuevo/", views.EventoClinicoCreate.as_view(), name="nuevo"),
-    path("mascota/<int:mascota_id>/<int:evento_id>/", views.EventoClinicoDetail.as_view(), name="detalle"),
-    path("mascota/<int:mascota_id>/<int:evento_id>/editar/", views.EventoClinicoUpdate.as_view(), name="editar"),
-    path("mascota/<int:mascota_id>/<int:evento_id>/eliminar/", views.EventoClinicoDelete.as_view(), name="eliminar"),
+    path("", EventoClinicoList.as_view(), name="lista"),
+    path("<int:pk>/", EventoClinicoDetail.as_view(), name="detalle"),
+    path("nuevo/", EventoClinicoCreate.as_view(), name="crear"),
+    path("<int:pk>/editar/", EventoClinicoUpdate.as_view(), name="editar"),
+    path("<int:pk>/eliminar/", EventoClinicoDelete.as_view(), name="eliminar"),
 ]

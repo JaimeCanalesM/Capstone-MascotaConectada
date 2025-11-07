@@ -1,7 +1,5 @@
 from django.urls import path
-from .views import (
-    MascotaList, MascotaCreate, MascotaUpdate, MascotaDelete, MascotaDetail
-)
+from .views import (MascotaList, MascotaCreate, MascotaUpdate, MascotaDelete, MascotaDetail)
 
 app_name = "mascota"
 

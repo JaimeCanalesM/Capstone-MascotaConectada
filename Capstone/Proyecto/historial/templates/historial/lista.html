@@ -1,83 +1,39 @@
 {% extends "base.html" %}
-{% block titulo %}Historial médico — {{ mascota.nombre }}{% endblock %}
+{% block titulo %}Historial clínico{% endblock %}
 {% block contenido %}
-<div class="container my-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h4 mb-0">Historial médico — {{ mascota.nombre }}</h1>
 
-    {# Mostrar botón "Nueva entrada" solo a staff/superuser o vet aprobado #}
-    {% if user.is_authenticated %}
-      {% if user.is_staff or user.is_superuser %}
-        <a href="{% url 'historial:crear' mascota.id %}" class="btn btn-primary">Nueva entrada</a>
-      {% else %}
-        {# user no es staff: revisar si tiene perfil y es vet aprobado #}
-        {% if user.perfil %}
-          {% if user.perfil.rol == "VET" and user.perfil.vet_estado == "APROBADO" %}
-            <a href="{% url 'historial:crear' mascota.id %}" class="btn btn-primary">Nueva entrada</a>
-          {% endif %}
-        {% endif %}
-      {% endif %}
-    {% endif %}
-  </div>
-
-  {% if eventos %}
-    <div class="list-group">
-      {% for e in eventos %}
-        <a class="list-group-item list-group-item-action" href="{% url 'historial:detalle' mascota.id e.id %}">
-          <div class="d-flex w-100 justify-content-between">
-            <h5 class="mb-1">
-              {% if e.tipo == "VACUNA" %}
-                <span class="badge text-bg-success">Vacuna</span>
-              {% elif e.tipo == "CONTROL" %}
-                <span class="badge text-bg-primary">Control</span>
-              {% elif e.tipo == "TRATAMIENTO" %}
-                <span class="badge text-bg-warning">Tratamiento</span>
-              {% elif e.tipo == "CIRUGIA" %}
-                <span class="badge text-bg-danger">Cirugía</span>
-              {% else %}
-                <span class="badge text-bg-secondary">Otro</span>
-              {% endif %}
-              {{ e.titulo }}
-            </h5>
-            <small class="text-muted">{{ e.fecha|date:"Y-m-d" }}</small>
-          </div>
-          {% if e.veterinario %}
-            <small class="text-muted">Vet: {{ e.veterinario.username }}</small>
-          {% else %}
-            <small class="text-muted">Vet: —</small>
-          {% endif %}
-          {% if e.descripcion %}
-            <p class="mb-1 mt-1 text-muted" style="white-space: pre-wrap;">{{ e.descripcion|truncatechars:160 }}</p>
-          {% endif %}
-        </a>
-      {% endfor %}
-    </div>
-
-    {% if is_paginated %}
-      <nav class="mt-3">
-        <ul class="pagination">
-          {% if page_obj.has_previous %}
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
-          {% else %}
-            <li class="page-item disabled"><span class="page-link">Anterior</span></li>
-          {% endif %}
-          <li class="page-item active">
-            <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-          </li>
-          {% if page_obj.has_next %}
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
-          {% else %}
-            <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
-          {% endif %}
-        </ul>
-      </nav>
-    {% endif %}
-  {% else %}
-    <div class="alert alert-info">No hay eventos clínicos para esta mascota.</div>
+{% with perfil=request.user.perfil|default_if_none:'' %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 m-0">Historial clínico</h1>
+  {% if perfil and perfil.rol == 'VET' or request.user.is_staff or request.user.is_superuser %}
+    <a class="btn btn-primary" href="{% url 'historial:crear' %}">Nuevo evento</a>
   {% endif %}
-
-  <div class="mt-3">
-    <a href="{% url 'mascota:lista' %}" class="btn btn-secondary">Volver a mis mascotas</a>
-  </div>
 </div>
+{% endwith %}
+
+<table class="table table-striped align-middle">
+  <thead>
+    <tr><th>Fecha</th><th>Mascota</th><th>Veterinario</th><th>Tipo</th><th class="text-end">Acciones</th></tr>
+  </thead>
+  <tbody>
+    {% for e in eventos %}
+      <tr>
+        <td>{{ e.fecha|date:"d-m-Y" }}</td>
+        <td>{{ e.mascota.nombre }}</td>
+        <td>{% if e.veterinario %}{{ e.veterinario.username }}{% else %}—{% endif %}</td>
+        <td>{{ e.tipo }}</td>
+        <td class="text-end">
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'historial:detalle' e.id %}">Ver</a>
+          {% if request.user.is_staff or request.user.is_superuser or request.user.perfil.rol == 'VET' %}
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'historial:editar' e.id %}">Editar</a>
+            <a class="btn btn-sm btn-outline-danger" href="{% url 'historial:eliminar' e.id %}">Eliminar</a>
+          {% endif %}
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5" class="text-center text-muted">No hay eventos clínicos.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
 {% endblock %}

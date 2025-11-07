@@ -1,43 +1,15 @@
 {% extends "base.html" %}
-{% block titulo %}Detalle de cita{% endblock %}
+{% block titulo %}Detalle cita{% endblock %}
 {% block contenido %}
-<div class="container my-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h4 mb-0">Detalle de la cita</h1>
-    <div>
-      <a href="{% url 'citas:editar' object.pk %}" class="btn btn-outline-primary btn-sm">Editar</a>
-      <a href="{% url 'citas:eliminar' object.pk %}" class="btn btn-outline-danger btn-sm">Eliminar</a>
-      <a href="{% url 'citas:lista' %}" class="btn btn-secondary btn-sm">Volver</a>
-    </div>
-  </div>
-
-  <div class="card shadow-sm">
-    <div class="card-body">
-      <dl class="row mb-0">
-        <dt class="col-sm-4">Fecha/Hora</dt>
-        <dd class="col-sm-8">{{ object.fecha_hora|date:"Y-m-d H:i" }}</dd>
-
-        <dt class="col-sm-4">Mascota</dt>
-        <dd class="col-sm-8">{{ object.mascota.nombre }}</dd>
-
-        <dt class="col-sm-4">Dueño</dt>
-        <dd class="col-sm-8">{{ object.dueno.username }}</dd>
-
-        <dt class="col-sm-4">Veterinario</dt>
-        <dd class="col-sm-8">{% if object.veterinario %}{{ object.veterinario.username }}{% else %}<span class="text-muted">—</span>{% endif %}</dd>
-
-        <dt class="col-sm-4">Motivo</dt>
-        <dd class="col-sm-8">{{ object.motivo }}</dd>
-
-        <dt class="col-sm-4">Estado</dt>
-        <dd class="col-sm-8">{{ object.estado|title }}</dd>
-
-        {% if object.notas %}
-        <dt class="col-sm-4">Notas</dt>
-        <dd class="col-sm-8">{{ object.notas|linebreaksbr }}</dd>
-        {% endif %}
-      </dl>
-    </div>
-  </div>
-</div>
+<h1 class="h4 mb-3">Detalle de cita</h1>
+<dl class="row">
+  <dt class="col-sm-3">Fecha/Hora</dt><dd class="col-sm-9">{{ cita.fecha_hora|date:"d-m-Y H:i" }}</dd>
+  <dt class="col-sm-3">Mascota</dt><dd class="col-sm-9">{{ cita.mascota.nombre }}</dd>
+  <dt class="col-sm-3">Dueño</dt><dd class="col-sm-9">{{ cita.dueno.username }} ({{ cita.dueno.email }})</dd>
+  <dt class="col-sm-3">Clínica</dt><dd class="col-sm-9">{% if cita.clinica %}{{ cita.clinica.nombre }}{% else %}—{% endif %}</dd>
+  <dt class="col-sm-3">Estado</dt><dd class="col-sm-9">{{ cita.estado }}</dd>
+  <dt class="col-sm-3">Veterinario</dt><dd class="col-sm-9">{% if cita.veterinario %}{{ cita.veterinario.username }}{% else %}—{% endif %}</dd>
+  <dt class="col-sm-3">Motivo</dt><dd class="col-sm-9">{{ cita.motivo|default:"—" }}</dd>
+  <dt class="col-sm-3">Notas</dt><dd class="col-sm-9">{{ cita.notas|linebreaksbr|default:"—" }}</dd>
+</dl>
 {% endblock %}

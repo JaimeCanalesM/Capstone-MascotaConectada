@@ -4,22 +4,18 @@ from django.contrib.auth.views import LogoutView
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse_lazy
-from django.views.generic import FormView
+from django.views.generic import FormView, ListView
+from cuentas.mixins import RolRequiredMixin
+from citas.models import Cita
 
 from .forms import UnifiedSignupForm
 
-
 # ---------------------------------------------------------------------
-# Logout con mensaje (Django 5 requiere POST). Redirige al home.
-# ---------------------------------------------------------------------
+# Logout con mensaje de éxito
 class LogoutWithMessageView(LogoutView):
-    next_page = "core:index"
-
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        messages.success(request, "Has cerrado sesión correctamente. ¡Hasta pronto! 👋")
-        return response
-
+    def dispatch(self, request, *args, **kwargs):
+        messages.success(request, "Has cerrado sesión correctamente.")
+        return super().dispatch(request, *args, **kwargs)
 
 # ---------------------------------------------------------------------
 # Registro unificado: crea usuario + perfil según checkbox is_veterinario.
@@ -70,3 +66,17 @@ def perfil(request):
         'user': request.user,
     }
     return render(request, 'cuentas/perfil.html', contexto)
+
+class CitasAtendidasView(RolRequiredMixin, ListView):
+    model = Cita
+    template_name = "citas/atendidas.html"
+    context_object_name = "citas"
+    roles_permitidos = ("VET", "STAFF")
+
+    def get_queryset(self):
+        qs = Cita.objects.filter(estado="COMPLETADA")
+        perfil = getattr(self.request.user, "perfil", None)
+        # Si es VET, muestra solo las suyas; si es STAFF, muestra todas
+        if perfil and perfil.rol == "VET":
+            qs = qs.filter(veterinario=self.request.user)
+        return qs.order_by("-fecha_hora")

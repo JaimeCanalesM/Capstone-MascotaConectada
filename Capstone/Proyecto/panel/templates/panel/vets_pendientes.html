@@ -37,11 +37,11 @@
                 <td class="text-end">
                   <form method="post" action="{% url 'panel:veterinario_aprobar' p.user_id %}" class="d-inline">
                     {% csrf_token %}
-                    <button class="btn btn-sm btn-success">Aprobar</button>
+                    <a class="btn btn-sm btn-success" href="{% url 'panel:aprobar_vet' p.id %}">Aprobar</a>
                   </form>
                   <form method="post" action="{% url 'panel:veterinario_rechazar' p.user_id %}" class="d-inline ms-1">
                     {% csrf_token %}
-                    <button class="btn btn-sm btn-outline-danger">Rechazar</button>
+                    <a class="btn btn-sm btn-outline-danger" href="{% url 'panel:rechazar_vet' p.id %}">Rechazar</a>
                   </form>
                 </td>
               </tr>

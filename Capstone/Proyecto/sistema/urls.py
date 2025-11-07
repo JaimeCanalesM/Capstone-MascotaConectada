@@ -16,6 +16,7 @@ urlpatterns = [
     path("mascotas/", include(("mascota.urls", "mascota"), namespace="mascota")),
     path("cuentas/", include(("cuentas.urls", "cuentas"), namespace="cuentas")),
     path("citas/", include(("citas.urls", "citas"), namespace="citas")),
+    path("admin/", admin.site.urls),
 
     # Panel de administración propio
     path("panel/", include(("panel.urls", "panel"), namespace="panel")),

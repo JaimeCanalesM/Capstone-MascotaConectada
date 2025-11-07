@@ -1,47 +1,56 @@
 {% extends "base.html" %}
-{% block titulo %}Mis mascotas{% endblock %}
+{% block titulo %}Mis Mascotas{% endblock %}
 {% block contenido %}
-<div class="container my-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h4 mb-0">Mis mascotas</h1>
-    <a class="btn btn-primary" href="{% url 'mascota:crear' %}">Registrar mascota</a>
-  </div>
 
-  {% if mascotas %}
-    <div class="row g-3">
-      {% for m in mascotas %}
-        <div class="col-md-6 col-lg-4">
-          <div class="card h-100">
-            {% if m.foto %}
-              <img src="{{ m.foto.url }}" class="card-img-top" alt="{{ m.nombre }}" style="height:180px; object-fit:cover;">
-            {% endif %}
-            <div class="card-body">
-              <h5 class="card-title mb-1">{{ m.nombre }}</h5>
-              <div class="text-muted small">{{ m.especie }}{% if m.raza %} · {{ m.raza }}{% endif %}</div>
-              {% if m.fecha_nacimiento %}
-                <div class="small text-muted">Nac.: {{ m.fecha_nacimiento|date:"Y-m-d" }}</div>
-              {% endif %}
-              {% if m.peso %}
-                <div class="small text-muted">Peso: {{ m.peso }} kg</div>
-              {% endif %}
-              {% if m.notas %}
-                <p class="mt-2 small text-muted" style="white-space: pre-wrap;">{{ m.notas|truncatechars:120 }}</p>
-              {% endif %}
-            </div>
-            <div class="card-footer d-flex justify-content-between">
-              <div class="btn-group">
-                <a href="{% url 'mascota:detalle' m.pk %}" class="btn btn-sm btn-outline-secondary">Ver</a>
-                <a href="{% url 'mascota:editar' m.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
-                <a href="{% url 'mascota:eliminar' m.pk %}" class="btn btn-sm btn-outline-danger">Eliminar</a>
-              </div>
-              <a href="{% url 'historial:lista' m.id %}" class="btn btn-sm btn-success">Historial</a>
-            </div>
-          </div>
-        </div>
-      {% endfor %}
-    </div>
-  {% else %}
-    <div class="alert alert-info">Aún no registras mascotas.</div>
-  {% endif %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  {% with perfil=request.user.perfil|default_if_none:'' %}
+  <form class="d-flex" method="get">
+    <input class="form-control me-2" type="search" name="q"
+        placeholder="{% if perfil and perfil.rol == 'VET' or request.user.is_staff %}Buscar nombre/raza/especie o dueño{% else %}Buscar por nombre/raza/especie{% endif %}"
+        value="{{ request.GET.q }}">
+    <button class="btn btn-outline-secondary" type="submit">Buscar</button>
+  </form>
+{% endwith %}
 </div>
+
+<table class="table table-striped align-middle">
+  <thead>
+    <tr><th>Nombre</th><th>Especie</th><th>Raza</th><th>Peso</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for m in mascotas %}
+      <tr>
+        <td>{{ m.nombre }}</td>
+        <td>{{ m.especie }}</td>
+        <td>{{ m.raza }}</td>
+        <td>{{ m.peso }} kg</td>
+        <td class="text-end">
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'mascota:editar' m.id %}">Editar</a>
+          <a class="btn btn-sm btn-outline-danger" href="{% url 'mascota:eliminar' m.id %}">Eliminar</a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5" class="text-center text-muted">No tienes mascotas registradas.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<nav aria-label="Paginación">
+  <ul class="pagination">
+    {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ request.GET.q }}">Anterior</a>
+      </li>
+    {% endif %}
+    <li class="page-item disabled">
+      <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+    </li>
+    {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ request.GET.q }}">Siguiente</a>
+      </li>
+    {% endif %}
+  </ul>
+</nav>
+
 {% endblock %}
