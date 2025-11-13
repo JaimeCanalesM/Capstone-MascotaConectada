@@ -14,8 +14,12 @@ class MascotaForm(forms.ModelForm):
         fields = ["nombre", "especie", "raza", "sexo", "fecha_nacimiento", "foto", "notas"]
         widgets = {
             "sexo": forms.Select(attrs={"class": "form-select"}),
-            "fecha_nacimiento": forms.DateInput(attrs={"type": "date"}),
-            "notas": forms.Textarea(attrs={"rows": 3}),
+            "fecha_nacimiento": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "notas": forms.Textarea(attrs={"rows": 3, "class": "form-control"}),
+            "nombre": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ej: Firulais"}),
+            "especie": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ej: Perro"}),
+            "raza": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ej: Labrador"}),
+            "foto": forms.FileInput(attrs={"class": "form-control", "accept": "image/*"}),
         }
 
     def __init__(self, *args, **kwargs):

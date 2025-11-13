@@ -2,71 +2,142 @@
 {% block titulo %}Citas{% endblock %}
 {% block contenido %}
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h1 class="h4 m-0">Citas</h1>
-  <div class="d-flex align-items-center">
-    <form class="d-flex me-2" method="get">
-      <input class="form-control" name="q" placeholder="Buscar por motivo/mascota/dueño" value="{{ request.GET.q }}">
-      <button class="btn btn-outline-secondary ms-2" type="submit">Buscar</button>
-    </form>
-    {% if puede_gestionar %}
-      <a class="btn btn-primary" href="{% url 'citas:crear' %}">Nueva cita</a>
-    {% endif %}
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h4 m-0">Mis Citas</h1>
+    <a href="{% url 'citas:crear' %}" class="btn btn-primary">
+      <i class="bi bi-calendar-plus"></i> Agendar cita
+    </a>
   </div>
+
+  <!-- Buscador -->
+  <form class="mb-4" method="get">
+    <div class="input-group">
+      <input class="form-control" type="search" name="q"
+          placeholder="Buscar por mascota, motivo o dueño..."
+          value="{{ request.GET.q }}">
+      <button class="btn btn-outline-secondary" type="submit">
+        <i class="bi bi-search"></i> Buscar
+      </button>
+    </div>
+  </form>
+
+  <!-- PRÓXIMAS CITAS -->
+  <h2 class="h5 mt-5 mb-3">
+    <i class="bi bi-calendar-check"></i> Próximas citas
+  </h2>
+
+  {% if proximas %}
+    <div class="table-responsive mb-4">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Fecha/Hora</th>
+            <th>Mascota</th>
+            <th>Motivo</th>
+            <th>Clínica</th>
+            <th>Estado</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in proximas %}
+            <tr>
+              <td>
+                <strong>{{ c.fecha_hora|date:"d/m/Y H:i" }}</strong>
+              </td>
+              <td>{{ c.mascota.nombre }}</td>
+              <td>{{ c.motivo|default:"—" }}</td>
+              <td>{{ c.clinica.nombre|default:"—" }}</td>
+              <td>
+                {% if c.estado == "CONFIRMADA" %}
+                  <span class="badge text-bg-success">Confirmada</span>
+                {% elif c.estado == "CANCELADA" %}
+                  <span class="badge text-bg-danger">Cancelada</span>
+                {% elif c.estado == "COMPLETADA" %}
+                  <span class="badge text-bg-secondary">Completada</span>
+                {% else %}
+                  <span class="badge text-bg-warning">Pendiente</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-secondary" href="{% url 'citas:detalle' c.id %}">
+                  <i class="bi bi-eye"></i> Ver
+                </a>
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'citas:editar' c.id %}">
+                  <i class="bi bi-pencil"></i> Editar
+                </a>
+                <a class="btn btn-sm btn-outline-danger" href="{% url 'citas:eliminar' c.id %}">
+                  <i class="bi bi-trash"></i> Eliminar
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info">
+      <i class="bi bi-info-circle"></i>
+      No hay citas próximas. 
+      <a href="{% url 'citas:crear' %}" class="alert-link">Agenda una ahora</a>
+    </div>
+  {% endif %}
+
+  <!-- HISTORIAL DE CITAS PASADAS -->
+  <h2 class="h5 mt-5 mb-3">
+    <i class="bi bi-clock-history"></i> Historial de citas
+  </h2>
+
+  {% if pasadas %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Fecha/Hora</th>
+            <th>Mascota</th>
+            <th>Motivo</th>
+            <th>Clínica</th>
+            <th>Estado</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in pasadas %}
+            <tr class="table-secondary">
+              <td>
+                <strong>{{ c.fecha_hora|date:"d/m/Y H:i" }}</strong>
+              </td>
+              <td>{{ c.mascota.nombre }}</td>
+              <td>{{ c.motivo|default:"—" }}</td>
+              <td>{{ c.clinica.nombre|default:"—" }}</td>
+              <td>
+                {% if c.estado == "CONFIRMADA" %}
+                  <span class="badge text-bg-success">Confirmada</span>
+                {% elif c.estado == "CANCELADA" %}
+                  <span class="badge text-bg-danger">Cancelada</span>
+                {% elif c.estado == "COMPLETADA" %}
+                  <span class="badge text-bg-secondary">Completada</span>
+                {% else %}
+                  <span class="badge text-bg-warning">Pendiente</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-secondary" href="{% url 'citas:detalle' c.id %}">
+                  <i class="bi bi-eye"></i> Ver
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info">
+      <i class="bi bi-info-circle"></i>
+      No hay citas pasadas.
+    </div>
+  {% endif %}
 </div>
-
-<h2 class="h6 mt-4">Próximas</h2>
-<table class="table table-striped align-middle">
-  <thead>
-    <tr><th>Fecha/Hora</th><th>Mascota</th><th>Dueño</th><th>Clínica</th><th>Estado</th><th class="text-end">Acciones</th></tr>
-  </thead>
-  <tbody>
-    {% for c in proximas %}
-      <tr>
-        <td>{{ c.fecha_hora|date:"d-m-Y H:i" }}</td>
-        <td>{{ c.mascota.nombre }}</td>
-        <td>{{ c.dueno.username }}</td>
-        <td>{% if c.clinica %}{{ c.clinica.nombre }}{% else %}—{% endif %}</td>
-        <td>{{ c.estado }}</td>
-        <td class="text-end">
-          <a class="btn btn-sm btn-outline-secondary" href="{% url 'citas:detalle' c.id %}">Ver</a>
-          {% if puede_gestionar %}
-            <a class="btn btn-sm btn-outline-primary" href="{% url 'citas:editar' c.id %}">Editar</a>
-            <a class="btn btn-sm btn-outline-danger" href="{% url 'citas:eliminar' c.id %}">Eliminar</a>
-          {% endif %}
-        </td>
-      </tr>
-    {% empty %}
-      <tr><td colspan="6" class="text-muted text-center">No hay citas próximas.</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
-
-<h2 class="h6 mt-4">Historial</h2>
-<table class="table table-hover align-middle">
-  <thead>
-    <tr><th>Fecha/Hora</th><th>Mascota</th><th>Dueño</th><th>Clínica</th><th>Estado</th><th class="text-end">Acciones</th></tr>
-  </thead>
-  <tbody>
-    {% for c in pasadas %}
-      <tr>
-        <td>{{ c.fecha_hora|date:"d-m-Y H:i" }}</td>
-        <td>{{ c.mascota.nombre }}</td>
-        <td>{{ c.dueno.username }}</td>
-        <td>{% if c.clinica %}{{ c.clinica.nombre }}{% else %}—{% endif %}</td>
-        <td>{{ c.estado }}</td>
-        <td class="text-end">
-          <a class="btn btn-sm btn-outline-secondary" href="{% url 'citas:detalle' c.id %}">Ver</a>
-          {% if puede_gestionar %}
-            <a class="btn btn-sm btn-outline-primary" href="{% url 'citas:editar' c.id %}">Editar</a>
-            <a class="btn btn-sm btn-outline-danger" href="{% url 'citas:eliminar' c.id %}">Eliminar</a>
-          {% endif %}
-        </td>
-      </tr>
-    {% empty %}
-      <tr><td colspan="6" class="text-muted text-center">No hay historial de citas.</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
 
 {% endblock %}

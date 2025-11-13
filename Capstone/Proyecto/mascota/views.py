@@ -4,6 +4,7 @@ from django.urls import reverse_lazy
 from django.db.models import Q
 from cuentas.mixins import DuenoOrVetCanEditMascotaMixin
 from .models import Mascota
+from .forms import MascotaForm
 
 class MascotaList(LoginRequiredMixin, ListView):
     model = Mascota
@@ -14,17 +15,17 @@ class MascotaList(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         perfil = getattr(user, "perfil", None)
-        qs = Mascota.objects.select_related("dueno").all()
+        qs = Mascota.objects.select_related("DUENO").all()
 
         # DUENO: solo sus mascotas
         if not (perfil and perfil.rol == "VET") and not user.is_staff and not user.is_superuser:
-            qs = qs.filter(dueno=user)
+            qs = qs.filter(DUENO=user)
 
         q = self.request.GET.get("q")
         if q:
             filtros = Q(nombre__icontains=q) | Q(raza__icontains=q) | Q(especie__icontains=q)
             if (perfil and perfil.rol == "VET") or user.is_staff or user.is_superuser:
-                filtros |= Q(dueno__username__icontains=q) | Q(dueno__email__icontains=q)
+                filtros |= Q(DUENO__username__icontains=q) | Q(DUENO__email__icontains=q)
             qs = qs.filter(filtros)
 
         return qs.order_by("nombre")
@@ -37,38 +38,25 @@ class MascotaDetail(LoginRequiredMixin, DetailView):
     def get_queryset(self):
         user = self.request.user
         perfil = getattr(user, "perfil", None)
-        qs = Mascota.objects.select_related("dueno")
+        qs = Mascota.objects.select_related("DUENO")
         if (perfil and perfil.rol == "VET") or user.is_staff or user.is_superuser:
             return qs
-        return qs.filter(dueno=user)
+        return qs.filter(DUENO=user)
     
 class MascotaCreate(LoginRequiredMixin, CreateView):
     model = Mascota
-    # Incluimos 'dueno' para VET/STAFF. Para DUENO lo ocultamos y lo seteamos automáticamente.
-    fields = ["dueno", "nombre", "especie", "raza", "sexo", "fecha_nacimiento", "peso", "foto", "notas"]
+    form_class = MascotaForm  # Usar el formulario
     template_name = "mascota/form.html"
     success_url = reverse_lazy("mascota:lista")
 
-    def get_form(self, *args, **kwargs):
-        form = super().get_form(*args, **kwargs)
-        user = self.request.user
-        perfil = getattr(user, "perfil", None)
-        # Si NO es VET/STAFF, ocultamos/quitamos el campo 'dueno' del form
-        if not ((perfil and perfil.rol == "VET") or user.is_staff or user.is_superuser):
-            form.fields.pop("dueno", None)
-        return form
-
     def form_valid(self, form):
-        user = self.request.user
-        perfil = getattr(user, "perfil", None)
-        # Si es dueño normal, fuerza que la mascota le pertenezca
-        if not ((perfil and perfil.rol == "VET") or user.is_staff or user.is_superuser):
-            form.instance.dueno = user
+        # La mascota siempre pertenece al usuario autenticado
+        form.instance.DUENO = self.request.user
         return super().form_valid(form)
 
 class MascotaUpdate(DuenoOrVetCanEditMascotaMixin, UpdateView):
     model = Mascota
-    fields = ["nombre", "especie", "raza", "sexo", "fecha_nacimiento", "peso", "foto", "notas"]
+    form_class = MascotaForm  #  Usar el formulario
     template_name = "mascota/form.html"
     success_url = reverse_lazy("mascota:lista")
 

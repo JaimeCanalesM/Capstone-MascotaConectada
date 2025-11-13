@@ -1,6 +1,5 @@
-
 from datetime import datetime, timedelta
-from time import timezone
+from django.utils import timezone
 from django.db.models import Q
 
 from django.contrib import messages
@@ -22,9 +21,9 @@ from .forms import CitaForm
 from historial.models import EventoClinico
 
 
-# valores de estado usados en el modelo Cita (mantener igual que en models.py)
+# Valores de estado
 ESTADO_PENDIENTE = "PENDIENTE"
-ESTADO_ATENDIDA = "ATENDIDA"
+ESTADO_COMPLETADA = "COMPLETADA"
 ESTADO_CANCELADA = "CANCELADA"
 
 
@@ -38,22 +37,21 @@ class CitaList(CitasReadOrVetStaffMixin, ListView):
         user = self.request.user
         perfil = getattr(user, "perfil", None)
         qs = Cita.objects.select_related("dueno", "mascota", "veterinario", "clinica")
-        # Filtrado por rol:
+        
         if perfil and perfil.rol == "VET":
             qs = qs.filter(veterinario=user)
         elif user.is_staff or user.is_superuser:
-            pass  # ve todo
+            pass
         else:
-            # DUENO: solo sus citas
             qs = qs.filter(dueno=user)
 
-        # Búsqueda opcional
         q = self.request.GET.get("q")
         if q:
             filtros = Q(motivo__icontains=q) | Q(mascota__nombre__icontains=q) | Q(dueno__username__icontains=q)
             if perfil and (perfil.rol == "VET" or user.is_staff or user.is_superuser):
                 filtros |= Q(clinica__nombre__icontains=q)
             qs = qs.filter(filtros)
+        
         return qs.order_by("fecha_hora")
 
     def get_context_data(self, **kwargs):
@@ -61,13 +59,14 @@ class CitaList(CitasReadOrVetStaffMixin, ListView):
         ahora = timezone.now()
         qs = ctx["todas"]
         ctx["proximas"] = [c for c in qs if c.fecha_hora >= ahora]
-        ctx["pasadas"]  = [c for c in qs if c.fecha_hora <  ahora]
-        # Flag para habilitar botones de acción (crear/editar/eliminar)
+        ctx["pasadas"] = [c for c in qs if c.fecha_hora < ahora]
+        
         perfil = getattr(self.request.user, "perfil", None)
         ctx["puede_gestionar"] = bool(
             (perfil and perfil.rol == "VET") or self.request.user.is_staff or self.request.user.is_superuser
         )
         return ctx
+
 
 class CitaDetail(CitasReadOrVetStaffMixin, DetailView):
     model = Cita
@@ -78,6 +77,7 @@ class CitaDetail(CitasReadOrVetStaffMixin, DetailView):
         user = self.request.user
         perfil = getattr(user, "perfil", None)
         qs = Cita.objects.select_related("dueno", "mascota", "veterinario", "clinica")
+        
         if perfil and perfil.rol == "VET":
             return qs.filter(veterinario=user)
         elif user.is_staff or user.is_superuser:
@@ -85,60 +85,60 @@ class CitaDetail(CitasReadOrVetStaffMixin, DetailView):
         else:
             return qs.filter(dueno=user)
 
-class ProximasCitas(LoginRequiredMixin, ListView):
+
+class CitaCreate(LoginRequiredMixin, CreateView):
     model = Cita
-    template_name = "citas/proximas.html"
-    context_object_name = "citas"
-
-    def get_queryset(self):
-        ahora = datetime.now()
-        limite = ahora + timedelta(days=7)
-        user = self.request.user
-        qs = Cita.objects.filter(fecha_hora__gte=ahora, fecha_hora__lte=limite)
-
-        if hasattr(user, "perfil") and user.perfil and user.perfil.rol == "DUE":
-            qs = qs.filter(dueno=user)
-        elif hasattr(user, "perfil") and user.perfil and user.perfil.rol == "VET":
-            qs = qs.filter(veterinario=user)
-
-        return qs.order_by("fecha_hora")
-
-
-
-class CitaCreate(VetOrStaffRequiredMixin, CreateView):
-    model = Cita
-    fields = ["dueno", "mascota", "clinica", "veterinario", "fecha_hora", "estado", "motivo", "notas"]
+    form_class = CitaForm
     template_name = "citas/form.html"
     success_url = reverse_lazy("citas:lista")
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
-class CitaUpdate(VetOrStaffRequiredMixin, UpdateView):
+    def form_valid(self, form):
+        form.instance.dueno = self.request.user
+        return super().form_valid(form)
+
+
+class CitaUpdate(LoginRequiredMixin, UpdateView):
     model = Cita
-    fields = ["dueno", "mascota", "clinica", "veterinario", "fecha_hora", "estado", "motivo", "notas"]
+    form_class = CitaForm
     template_name = "citas/form.html"
     success_url = reverse_lazy("citas:lista")
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
     def get_queryset(self):
-        # VET solo edita sus citas; STAFF todo
         user = self.request.user
-        qs = super().get_queryset()
         perfil = getattr(user, "perfil", None)
+        qs = super().get_queryset()
+        
         if perfil and perfil.rol == "VET":
             return qs.filter(veterinario=user)
+        elif not (user.is_staff or user.is_superuser):
+            return qs.filter(dueno=user)
         return qs
 
 
-class CitaDelete(VetOrStaffRequiredMixin, DeleteView):
+class CitaDelete(LoginRequiredMixin, DeleteView):
     model = Cita
     template_name = "citas/confirm_delete.html"
     success_url = reverse_lazy("citas:lista")
 
     def get_queryset(self):
         user = self.request.user
-        qs = super().get_queryset()
         perfil = getattr(user, "perfil", None)
+        qs = super().get_queryset()
+        
         if perfil and perfil.rol == "VET":
             return qs.filter(veterinario=user)
+        elif not (user.is_staff or user.is_superuser):
+            return qs.filter(dueno=user)
         return qs
 
 
@@ -146,7 +146,6 @@ class CitaCompletar(LoginRequiredMixin, View):
     def post(self, request, pk):
         cita = get_object_or_404(Cita, pk=pk)
 
-        # control de permisos
         u = request.user
         puede = False
         if u.is_staff or u.is_superuser:
@@ -158,61 +157,15 @@ class CitaCompletar(LoginRequiredMixin, View):
             messages.error(request, "No tiene permisos para completar esta cita.")
             return redirect("citas:lista")
 
-        cita.estado = ESTADO_ATENDIDA
+        cita.estado = ESTADO_COMPLETADA
         cita.save()
-        messages.success(request, "Cita marcada como atendida.")
+        messages.success(request, "Cita marcada como completada.")
         return redirect("citas:lista")
 
 
-class CitaToHistorial(LoginRequiredMixin, View):
-    """
-    Convierte una cita ATENDIDA en un evento clínico.
-    """
-
-    def post(self, request, pk):
-        cita = get_object_or_404(Cita, pk=pk)
-
-        # permisos
-        u = request.user
-        puede = False
-        if u.is_staff or u.is_superuser:
-            puede = True
-        elif hasattr(u, "perfil") and u.perfil and u.perfil.rol == "VET" and u.perfil.vet_estado == "APROBADO":
-            puede = True
-
-        if not puede:
-            messages.error(request, "No tiene permisos para enviar esta cita al historial.")
-            return redirect("citas:lista")
-
-        if not cita.mascota:
-            messages.error(request, "La cita no tiene mascota asociada.")
-            return redirect("citas:lista")
-
-        # crear evento
-        EventoClinico.objects.create(
-            mascota=cita.mascota,
-            fecha=cita.fecha_hora.date() if cita.fecha_hora else datetime.now().date(),
-            tipo="CONSULTA",
-            veterinario=cita.veterinario,
-            descripcion=f"Atención generada desde la cita #{cita.id}. Motivo: {cita.motivo or '—'}",
-        )
-
-        # asegurar que la cita queda atendida
-        cita.estado = ESTADO_ATENDIDA
-        cita.save()
-
-        messages.success(request, "Se creó el evento en el historial de la mascota.")
-        return redirect("historial:lista", mascota_id=cita.mascota.id)
-
-
-class CitasAtendidasView(VetOrStaffRequiredMixin, ListView):
-    """
-    Lista de atenciones realizadas (citas COMPLETADAS).
-    - VET: ve solo sus atenciones.
-    - STAFF/SUPERUSER: ve todas.
-    """
+class CitasAtendidasView(LoginRequiredMixin, ListView):
     model = Cita
-    template_name = "citas/atendidas.html"
+    template_name = "citas/mis_atenciones.html"
     context_object_name = "citas"
     paginate_by = 20
 
@@ -220,6 +173,8 @@ class CitasAtendidasView(VetOrStaffRequiredMixin, ListView):
         qs = Cita.objects.select_related("dueno", "mascota", "veterinario", "clinica").filter(estado="COMPLETADA")
         user = self.request.user
         perfil = getattr(user, "perfil", None)
+        
         if perfil and perfil.rol == "VET" and not (user.is_staff or user.is_superuser):
             qs = qs.filter(veterinario=user)
+        
         return qs.order_by("-fecha_hora")

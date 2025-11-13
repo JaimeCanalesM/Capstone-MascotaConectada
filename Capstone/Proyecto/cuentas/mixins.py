@@ -41,6 +41,8 @@ class DuenoOrVetCanEditMascotaMixin(LoginRequiredMixin, UserPassesTestMixin):
         obj = self.get_object()
         if not user.is_authenticated:
             return False
+        # VET o STAFF: acceso total
         if (perfil and perfil.rol == "VET") or user.is_staff or user.is_superuser:
             return True
-        return getattr(obj, "dueno_id", None) == user.id
+        # DUENO: solo si es el dueño de la mascota
+        return obj.DUENO_id == user.id

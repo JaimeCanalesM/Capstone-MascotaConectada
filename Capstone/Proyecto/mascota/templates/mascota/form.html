@@ -1,10 +1,113 @@
 {% extends "base.html" %}
-{% block titulo %}{{ object.pk|yesno:"Editar mascota,Nueva mascota" }}{% endblock %}
+{% block titulo %}{% if object %}Editar mascota{% else %}Nueva mascota{% endif %}{% endblock %}
+
 {% block contenido %}
-<h1 class="h4 mb-3">{{ object.pk|yesno:"Editar mascota,Nueva mascota" }}</h1>
-<form method="post" enctype="multipart/form-data">{% csrf_token %}
-  {{ form.as_p }}
-  <button class="btn btn-primary" type="submit">Guardar</button>
-  <a class="btn btn-outline-secondary" href="{% url 'mascota:lista' %}">Cancelar</a>
-</form>
+<div class="container my-4">
+  <h1 class="h4 mb-4">{% if object %}Editar mascota{% else %}Registrar mascota{% endif %}</h1>
+
+  <div class="row">
+    <div class="col-lg-8">
+      <form method="post" enctype="multipart/form-data" novalidate class="card shadow-sm">
+        {% csrf_token %}
+        
+        <div class="card-body p-4">
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger mb-3">
+              <strong>Error:</strong> {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+
+          <div class="row g-3">
+            <!-- Nombre -->
+            <div class="col-12">
+              <label class="form-label" for="{{ form.nombre.id_for_label }}">
+                <strong>Nombre *</strong>
+              </label>
+              {{ form.nombre }}
+              {% if form.nombre.errors %}
+                <div class="alert alert-danger small mt-1">{{ form.nombre.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Especie -->
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.especie.id_for_label }}">
+                <strong>Especie *</strong>
+              </label>
+              {{ form.especie }}
+              {% if form.especie.errors %}
+                <div class="alert alert-danger small mt-1">{{ form.especie.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Raza -->
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.raza.id_for_label }}">Raza</label>
+              {{ form.raza }}
+              {% if form.raza.errors %}
+                <div class="alert alert-danger small mt-1">{{ form.raza.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Sexo -->
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.sexo.id_for_label }}">Sexo</label>
+              {{ form.sexo }}
+              {% if form.sexo.errors %}
+                <div class="alert alert-danger small mt-1">{{ form.sexo.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Fecha de nacimiento -->
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.fecha_nacimiento.id_for_label }}">Fecha de nacimiento</label>
+              {{ form.fecha_nacimiento }}
+              {% if form.fecha_nacimiento.errors %}
+                <div class="alert alert-danger small mt-1">{{ form.fecha_nacimiento.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Foto -->
+            <div class="col-12">
+              <label class="form-label" for="{{ form.foto.id_for_label }}">Foto de la mascota</label>
+              {{ form.foto }}
+              <small class="text-muted d-block mt-2">Formatos permitidos: JPG, PNG, GIF (máx. 5MB)</small>
+              {% if form.foto.errors %}
+                <div class="alert alert-danger small mt-1">{{ form.foto.errors.0 }}</div>
+              {% endif %}
+              
+              <!-- Mostrar foto actual si existe -->
+              {% if object.foto %}
+                <div class="mt-3">
+                  <p><strong>Foto actual:</strong></p>
+                  <img src="{{ object.foto.url }}" alt="{{ object.nombre }}" class="img-thumbnail" style="max-width: 250px; max-height: 250px;">
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Notas -->
+            <div class="col-12">
+              <label class="form-label" for="{{ form.notas.id_for_label }}">Notas adicionales</label>
+              {{ form.notas }}
+              {% if form.notas.errors %}
+                <div class="alert alert-danger small mt-1">{{ form.notas.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer bg-light d-flex justify-content-between">
+          <a class="btn btn-outline-secondary" href="{% url 'mascota:lista' %}">Cancelar</a>
+          <button class="btn btn-primary btn-lg" type="submit">
+            {% if object %}
+              <i class="bi bi-check-circle"></i> Guardar cambios
+            {% else %}
+              <i class="bi bi-plus-circle"></i> Registrar mascota
+            {% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 {% endblock %}

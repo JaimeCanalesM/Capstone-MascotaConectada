@@ -27,7 +27,7 @@ class EventoClinicoList(HistorialReadOrVetStaffMixin, ListView):
             return qs
         else:
             # DUENO: eventos de sus mascotas
-            return qs.filter(mascota__dueno=user).order_by("-fecha")
+            return qs.filter(mascota__DUENO=user).order_by("-fecha")
 
 class EventoClinicoDetail(HistorialReadOrVetStaffMixin, DetailView):
     model = EventoClinico
