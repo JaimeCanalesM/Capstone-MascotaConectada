@@ -28,43 +28,72 @@ ESTADO_CANCELADA = "CANCELADA"
 
 
 class CitaList(CitasReadOrVetStaffMixin, ListView):
+    """
+    Lista de citas filtradas por rol del usuario.
+    Usa el QuerySet personalizado para simplificar lógica.
+    """
     model = Cita
     template_name = "citas/lista.html"
     context_object_name = "todas"
     paginate_by = 20
 
     def get_queryset(self):
-        user = self.request.user
-        perfil = getattr(user, "perfil", None)
-        qs = Cita.objects.select_related("dueno", "mascota", "veterinario", "clinica")
+        """
+        Retorna citas del usuario con búsqueda opcional.
+        Usa el QuerySet personalizado: .for_user() y .with_related()
+        """
+        # QuerySet base filtrado por rol y optimizado
+        qs = (Cita.objects
+              .with_related()  # Evita N+1 queries
+              .for_user(self.request.user))  # Filtra por rol
         
-        if perfil and perfil.rol == "VET":
-            qs = qs.filter(veterinario=user)
-        elif user.is_staff or user.is_superuser:
-            pass
-        else:
-            qs = qs.filter(dueno=user)
-
-        q = self.request.GET.get("q")
+        # Búsqueda por término (opcional)
+        q = self.request.GET.get("q", "").strip()
         if q:
-            filtros = Q(motivo__icontains=q) | Q(mascota__nombre__icontains=q) | Q(dueno__username__icontains=q)
-            if perfil and (perfil.rol == "VET" or user.is_staff or user.is_superuser):
-                filtros |= Q(clinica__nombre__icontains=q)
+            filtros = (Q(motivo__icontains=q) | 
+                      Q(mascota__nombre__icontains=q))
+            
+            # Búsqueda por dueño solo si eres staff o vet
+            if self.request.user.is_staff or self._es_vet():
+                filtros |= Q(dueno__username__icontains=q)
+            
             qs = qs.filter(filtros)
         
         return qs.order_by("fecha_hora")
+    
+    def _es_vet(self):
+        """Helper: ¿es veterinario?"""
+        perfil = getattr(self.request.user, "perfil", None)
+        return perfil and perfil.rol == "VET"
 
     def get_context_data(self, **kwargs):
+        """
+        Agrega próximas y pasadas al contexto.
+        IMPORTANTE: hacemos esto ANTES de paginar en get_queryset
+        """
         ctx = super().get_context_data(**kwargs)
-        ahora = timezone.now()
-        qs = ctx["todas"]
-        ctx["proximas"] = [c for c in qs if c.fecha_hora >= ahora]
-        ctx["pasadas"] = [c for c in qs if c.fecha_hora < ahora]
         
-        perfil = getattr(self.request.user, "perfil", None)
-        ctx["puede_gestionar"] = bool(
-            (perfil and perfil.rol == "VET") or self.request.user.is_staff or self.request.user.is_superuser
-        )
+        # Obtener el queryset COMPLETO (sin slice de paginación)
+        # usando directamente los métodos del QuerySet
+        qs_all = (Cita.objects
+                  .with_related()
+                  .for_user(self.request.user))
+        
+        # Aplicar búsqueda si existe
+        q = self.request.GET.get("q", "").strip()
+        if q:
+            filtros = (Q(motivo__icontains=q) | 
+                      Q(mascota__nombre__icontains=q))
+            
+            if self.request.user.is_staff or self._es_vet():
+                filtros |= Q(dueno__username__icontains=q)
+            
+            qs_all = qs_all.filter(filtros)
+        
+        # Ahora SÍ separar próximas y pasadas (antes del slice de página)
+        ctx["proximas"] = list(qs_all.proximas())
+        ctx["pasadas"] = list(qs_all.pasadas())
+        
         return ctx
 
 

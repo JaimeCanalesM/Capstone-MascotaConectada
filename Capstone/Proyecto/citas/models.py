@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
-
+from .querysets import CitaQuerySet
 # Nota: si existe Clinica en 'clinicas', usamos FK; si no, dejamos None (y el form la omitirá)
 try:
     from clinicas.models import Clinica
@@ -10,6 +10,7 @@ except Exception:
 
 
 class Cita(models.Model):
+    objects = CitaQuerySet.as_manager()
     """
     Entidad de agenda (citas médicas o controles).
     - 'dueno': usuario que solicita/posee la cita.
