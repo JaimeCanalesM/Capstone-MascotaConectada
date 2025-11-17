@@ -2,63 +2,141 @@
 {% block titulo %}Panel de administración{% endblock %}
 {% block contenido %}
 <div class="container my-4">
+
   <h1 class="h4 mb-4">Panel de administración</h1>
 
-  <!-- Métricas principales -->
-  <div class="row g-3 mb-4">
-    <div class="col-md-3">
-      <div class="card text-bg-light h-100">
+  <!-- ========================= -->
+  <!--      ESTADÍSTICAS         -->
+  <!-- ========================= -->
+
+  <h3 class="mt-5 mb-3">📊 Estadísticas del sistema</h3>
+
+  <style>
+    .chart-small {
+      max-height: 180px !important;
+      height: 180px !important;
+    }
+  </style>
+
+  <div class="row g-4">
+
+    <!-- Usuarios por mes -->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header fw-bold">Usuarios registrados por mes</div>
         <div class="card-body">
-          <h6 class="text-muted mb-1">Usuarios</h6>
-          <div class="display-6">{{ total_usuarios }}</div>
-          <small class="text-muted">registrados en el sistema</small>
+          <canvas id="usuariosMes" class="chart-small"></canvas>
         </div>
       </div>
     </div>
-    <div class="col-md-3">
-      <div class="card text-bg-light h-100">
+
+    <!-- Usuarios por rol -->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header fw-bold">Distribución por rol</div>
         <div class="card-body">
-          <h6 class="text-muted mb-1">Mascotas</h6>
-          <div class="display-6">{{ total_mascotas }}</div>
-          <small class="text-muted">vinculadas a dueños</small>
+          <canvas id="rolesChart" class="chart-small"></canvas>
         </div>
       </div>
     </div>
-    <div class="col-md-3">
-      <div class="card text-bg-light h-100">
-        <div class="card-body">
-          <h6 class="text-muted mb-1">Citas</h6>
-          <div class="display-6">{{ total_citas }}</div>
-          <small class="text-muted">agendadas</small>
+
+    <!-- Promedio mascotas -->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header fw-bold">Promedio de mascotas por usuario</div>
+        <div class="card-body text-center">
+          <h2 class="fw-bold">{{ promedio_mascotas }}</h2>
+          <canvas id="mascotasChart" class="chart-small"></canvas>
         </div>
       </div>
     </div>
-    <div class="col-md-3">
-      <div class="card text-bg-light h-100">
-        <div class="card-body">
-          <h6 class="text-muted mb-1">Eventos clínicos</h6>
-          <div class="display-6">{{ total_eventos }}</div>
-          <small class="text-muted">registrados en historial</small>
-        </div>
-      </div>
-    </div>
+
   </div>
 
-  <!-- Veterinarios pendientes -->
-  <div class="card mb-4">
+  <!-- JSON SCRIPT PARA LOS GRÁFICOS -->
+  {{ usuarios_por_mes|json_script:"usuarios_mes_json" }}
+  {{ total_duenos|json_script:"duenos_json" }}
+  {{ total_veterinarios_aprobados|json_script:"vets_ok_json" }}
+  {{ total_veterinarios_pendientes|json_script:"vets_pend_json" }}
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    // --------- Usuarios por mes ----------
+    const usuariosMesRaw = JSON.parse(document.getElementById("usuarios_mes_json").textContent);
+
+    const usuariosMesLabels = usuariosMesRaw.map(item => item.m);
+    const usuariosMesData = usuariosMesRaw.map(item => item.total);
+
+    const ctxMes = document.getElementById('usuariosMes');
+    new Chart(ctxMes, {
+      type: 'line',
+      data: {
+        labels: usuariosMesLabels,
+        datasets: [{
+          label: 'Usuarios registrados',
+          data: usuariosMesData,
+          borderWidth: 3,
+          borderColor: '#27d88b',
+          backgroundColor: 'rgba(39,216,139,0.3)',
+          tension: 0.3
+        }]
+      }
+    });
+
+    // --------- Roles ----------
+    const duenos = JSON.parse(document.getElementById("duenos_json").textContent);
+    const vetsOk = JSON.parse(document.getElementById("vets_ok_json").textContent);
+    const vetsPend = JSON.parse(document.getElementById("vets_pend_json").textContent);
+
+    const ctxRoles = document.getElementById('rolesChart');
+    new Chart(ctxRoles, {
+      type: 'pie',
+      data: {
+        labels: ['Dueños', 'Vets Aprobados', 'Vets Pendientes'],
+        datasets: [{
+          data: [duenos, vetsOk, vetsPend],
+          backgroundColor: ['#27d88b', '#9ab513', '#ffc107']
+        }]
+      }
+    });
+
+    // -------- Promedio Mascotas -------
+    const ctxMascotas = document.getElementById('mascotasChart');
+    new Chart(ctxMascotas, {
+      type: 'bar',
+      data: {
+        labels: ['Promedio'],
+        datasets: [{
+          label: 'Mascotas por usuario',
+          data: [{{ promedio_mascotas }}],
+          backgroundColor: '#27d88b'
+        }]
+      }
+    });
+  </script>
+
+  <!-- ============================= -->
+  <!--      VETERINARIOS PENDIENTES -->
+  <!-- ============================= -->
+
+  <div class="card mb-4 mt-5">
     <div class="card-header d-flex justify-content-between align-items-center">
       <h5 class="mb-0">Solicitudes de veterinario</h5>
-      <small class="text-muted">Usuarios que marcaron "soy veterinario"</small>
+      <small class="text-muted">Usuarios que marcaron "Soy veterinario"</small>
     </div>
     <div class="card-body p-0">
+
       {% if vets_pendientes %}
         <div class="table-responsive">
           <table class="table mb-0 align-middle">
             <thead>
               <tr>
                 <th>Usuario</th>
-                <th>Email</th>
-                <th>Estado actual</th>
+                <th>Nombre completo</th>
+                <th>RUT</th>
+                <th>Teléfono</th>
+                <th>Licencia médica</th>
                 <th class="text-end">Acciones</th>
               </tr>
             </thead>
@@ -66,8 +144,21 @@
               {% for v in vets_pendientes %}
                 <tr>
                   <td>{{ v.user.username }}</td>
-                  <td>{{ v.user.email }}</td>
-                  <td><span class="badge text-bg-warning">PENDIENTE</span></td>
+                  <td>{{ v.user.first_name }} {{ v.user.last_name }}</td>
+                  <td>{{ v.rut|default:"—" }}</td>
+                  <td>{{ v.telefono|default:"—" }}</td>
+
+                  <td>
+                    {% if v.licencia_medica %}
+                      <a href="{{ v.licencia_medica.url }}" target="_blank"
+                        class="btn btn-sm btn-outline-primary">
+                        Ver archivo
+                      </a>
+                    {% else %}
+                      <span class="text-muted">No adjuntó</span>
+                    {% endif %}
+                  </td>
+
                   <td class="text-end">
                     <a href="{% url 'panel:aprobar_vet' v.id %}" class="btn btn-sm btn-success">Aprobar</a>
                     <a href="{% url 'panel:rechazar_vet' v.id %}" class="btn btn-sm btn-outline-danger">Rechazar</a>
@@ -77,13 +168,17 @@
             </tbody>
           </table>
         </div>
+
       {% else %}
         <p class="p-3 mb-0 text-muted">No hay solicitudes pendientes.</p>
       {% endif %}
     </div>
   </div>
 
-  <!-- Citas completadas pero sin historial -->
+  <!-- ============================= -->
+  <!--    CITAS SIN HISTORIAL       -->
+  <!-- ============================= -->
+
   <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
       <h5 class="mb-0">Citas completadas sin historial</h5>

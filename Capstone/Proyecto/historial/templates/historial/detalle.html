@@ -8,22 +8,22 @@
     <div>
       {% if user.is_authenticated %}
         {% if user.is_staff %}
-          <a href="{% url 'historial:editar' mascota.id evento.id %}" class="btn btn-outline-primary btn-sm">Editar</a>
-          <form method="post" action="{% url 'historial:eliminar' mascota.id evento.id %}" class="d-inline">
+          <a href="{% url 'historial:editar' evento.id %}" class="btn btn-outline-primary btn-sm">Editar</a>
+          <form method="post" action="{% url 'historial:eliminar' evento.id %}" class="d-inline">
             {% csrf_token %}
             <button class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Eliminar este evento?');">Eliminar</button>
           </form>
         {% elif user.is_superuser %}
-          <a href="{% url 'historial:editar' mascota.id evento.id %}" class="btn btn-outline-primary btn-sm">Editar</a>
-          <form method="post" action="{% url 'historial:eliminar' mascota.id evento.id %}" class="d-inline">
+          <a href="{% url 'historial:editar' evento.id %}" class="btn btn-outline-primary btn-sm">Editar</a>
+          <form method="post" action="{% url 'historial:eliminar' evento.id %}" class="d-inline">
             {% csrf_token %}
             <button class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Eliminar este evento?');">Eliminar</button>
           </form>
         {% else %}
           {% if user.perfil %}
             {% if user.perfil.rol == "VET" and user.perfil.vet_estado == "APROBADO" %}
-              <a href="{% url 'historial:editar' mascota.id evento.id %}" class="btn btn-outline-primary btn-sm">Editar</a>
-              <form method="post" action="{% url 'historial:eliminar' mascota.id evento.id %}" class="d-inline">
+              <a href="{% url 'historial:editar' evento.id %}" class="btn btn-outline-primary btn-sm">Editar</a>
+          <form method="post" action="{% url 'historial:eliminar' evento.id %}" class="d-inline">
                 {% csrf_token %}
                 <button class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Eliminar este evento?');">Eliminar</button>
               </form>

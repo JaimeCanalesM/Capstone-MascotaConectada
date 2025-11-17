@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,29 +17,52 @@
       border-radius: 1.25rem;
       color: #fff;
     }
-    html, body {
+
+    html,
+    body {
       height: 100%;
       background: #f5f6f8;
     }
+
     body {
       display: flex;
       flex-direction: column;
     }
-    main { flex: 1; }
-    footer { margin-top: auto; }
-    .navbar-dark .nav-link { color: white !important; }
-    .navbar-dark .navbar-brand { color: white !important; }
-    footer a { color: white !important; }
-    footer small { color: white !important; }
+
+    main {
+      flex: 1;
+    }
+
+    footer {
+      margin-top: auto;
+    }
+
+    .navbar-dark .nav-link {
+      color: white !important;
+    }
+
+    .navbar-dark .navbar-brand {
+      color: white !important;
+    }
+
+    footer a {
+      color: white !important;
+    }
+
+    footer small {
+      color: white !important;
+    }
   </style>
 </head>
+
 <body>
   <!-- NAVBAR: color verde #27d88b -->
   <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #27d88b; color: white;">
     <div class="container">
       <span class="logo">🐾</span>
       <a class="navbar-brand fw-bold" href="/">MascotaConectada</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mcNav" aria-controls="mcNav" aria-expanded="false" aria-label="Toggle navigation">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mcNav"
+        aria-controls="mcNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
 
@@ -53,43 +77,48 @@
 
           <!-- Admin SOLO staff/superuser (sin paréntesis) -->
           {% if user.is_authenticated %}
-            {% if user.is_staff or user.is_superuser %}
-              <li class="nav-item"><a class="nav-link" href="{% url 'panel:dashboard' %}">Admin</a></li>
-            {% endif %}
+          {% if user.is_staff or user.is_superuser %}
+          <li class="nav-item"><a class="nav-link" href="{% url 'panel:dashboard' %}">Admin</a></li>
+          {% endif %}
           {% endif %}
         </ul>
 
         <ul class="navbar-nav ms-auto">
           {% if user.is_authenticated %}
-            <li class="nav-item">
-              <span class="nav-link">
-                Hola, {{ user.username }}
-                {% with p=user.perfil %}
-                  {% if p %}
-                    <span class="badge text-bg-secondary">{{ p.get_rol_display }}</span>
-                    {% if p.rol == "VET" and p.vet_estado %}
-                      <span class="badge
+          <li class="nav-item">
+            <span class="nav-link">
+              Hola, {{ user.username }}
+              {% with p=user.perfil %}
+              {% if p %}
+              {% if user.is_staff or user.is_superuser %}
+              <span class="badge text-bg-secondary">Administrador</span>
+              {% else %}
+              <span class="badge text-bg-secondary">{{ p.get_rol_display }}</span>
+              {% endif %}
+              {% if p.rol == "VET" and p.vet_estado %}
+              <span class="badge
                         {% if p.vet_estado == 'APROBADO' %}text-bg-success
                         {% elif p.vet_estado == 'RECHAZADO' %}text-bg-danger
                         {% else %}text-bg-warning{% endif %}">
-                        {{ p.vet_estado|title }}
-                      </span>
-                    {% endif %}
-                  {% endif %}
-                {% endwith %}
+                {{ p.vet_estado|title }}
               </span>
-            </li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'cuentas:perfil' %}">Mi perfil</a></li>
-            <!-- Logout por POST -->
-            <li class="nav-item">
-              <form method="post" action="{% url 'logout' %}">
-                {% csrf_token %}
-                <button type="submit" class="nav-link" style="border:none; background:none; cursor:pointer; padding:0.5rem 0;">Salir</button>
-              </form>
-            </li>
+              {% endif %}
+              {% endif %}
+              {% endwith %}
+            </span>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'cuentas:perfil' %}">Mi perfil</a></li>
+          <!-- Logout por POST -->
+          <li class="nav-item">
+            <form method="post" action="{% url 'logout' %}">
+              {% csrf_token %}
+              <button type="submit" class="nav-link"
+                style="border:none; background:none; cursor:pointer; padding:0.5rem 0;">Salir</button>
+            </form>
+          </li>
           {% else %}
-            <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Ingresar</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'cuentas:registro' %}">Registrarme</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Ingresar</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'cuentas:registro' %}">Registrarme</a></li>
           {% endif %}
         </ul>
       </div>
@@ -97,14 +126,14 @@
   </nav>
 
   {% if messages %}
-    <div class="container mt-3">
-      {% for m in messages %}
-        <div class="alert alert-{{ m.tags }} alert-dismissible fade show" role="alert">
-          {{ m }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      {% endfor %}
+  <div class="container mt-3">
+    {% for m in messages %}
+    <div class="alert alert-{{ m.tags }} alert-dismissible fade show" role="alert">
+      {{ m }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
+    {% endfor %}
+  </div>
   {% endif %}
 
   <!-- Contenido principal -->
@@ -132,10 +161,10 @@
             · <a href="{% url 'login' %}" style="text-decoration: none;">Ingresar</a>
             · <a href="{% url 'cuentas:registro' %}" style="text-decoration: none;">Registrarme</a>
             {% if user.is_authenticated %}
-              · <a href="{% url 'mascota:lista' %}" style="text-decoration: none;">Mis mascotas</a>
-              {% if user.is_staff or user.is_superuser %}
-                · <a href="{% url 'panel:dashboard' %}" style="text-decoration: none;">Admin</a>
-              {% endif %}
+            · <a href="{% url 'mascota:lista' %}" style="text-decoration: none;">Mis mascotas</a>
+            {% if user.is_staff or user.is_superuser %}
+            · <a href="{% url 'panel:dashboard' %}" style="text-decoration: none;">Admin</a>
+            {% endif %}
             {% endif %}
           </small>
         </div>
@@ -147,4 +176,5 @@
   <script type="text/javascript" async src="https://tenor.com/embed.js"></script>
   {% block scripts %}{% endblock %}
 </body>
+
 </html>
