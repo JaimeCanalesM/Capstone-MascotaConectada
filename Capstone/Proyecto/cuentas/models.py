@@ -49,6 +49,12 @@ class Perfil(models.Model):
         null=True
     )
 
+    vet_rut = models.CharField(
+        max_length=12,
+        blank=True,
+        help_text="RUT del veterinario (formato: 12.345.678-9)"
+    )
+
     vet_registro = models.CharField(
         max_length=100,
         blank=True,
@@ -65,7 +71,7 @@ class Perfil(models.Model):
         upload_to="licencias_vets/",
         blank=True,
         null=True,
-        help_text="Documento obligatorio para veterinarios (PDF/JPG/PNG)"
+        help_text="Título de médico veterinario (PDF/JPG/PNG)"
     )
 
     vet_observaciones = models.TextField(

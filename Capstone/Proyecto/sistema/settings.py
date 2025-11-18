@@ -1,13 +1,15 @@
 # sistema/settings.py
 from pathlib import Path
 import os
+from decouple import config, Csv
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "dev-inseguro-cambia-esto"
-DEBUG = True
-ALLOWED_HOSTS = ["*"]
+# SEGURIDAD: Usando variables de entorno
+SECRET_KEY = config('SECRET_KEY', default='dev-inseguro-cambia-esto')
+DEBUG = config('DEBUG', default=True, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -57,12 +59,12 @@ WSGI_APPLICATION = "sistema.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": "mascotaconectada",
-        "USER": "mc_user",
-        "PASSWORD": "mc_password_123",
-        "HOST": "127.0.0.1",
-        "PORT": "3306",
+        "ENGINE": config('DB_ENGINE', default='django.db.backends.mysql'),
+        "NAME": config('DB_NAME', default='mascotaconectada'),
+        "USER": config('DB_USER', default='mc_user'),
+        "PASSWORD": config('DB_PASSWORD', default='mc_password_123'),
+        "HOST": config('DB_HOST', default='127.0.0.1'),
+        "PORT": config('DB_PORT', default='3306'),
         "OPTIONS": {
             "charset": "utf8mb4",
             "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
@@ -89,14 +91,15 @@ LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/cuentas/redireccion/"
 LOGOUT_REDIRECT_URL = "/"
 
-EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@mascotaconectada.cl")
+EMAIL_BACKEND = config("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="no-reply@mascotaconectada.cl")
 
 # Producción (cuando tengas SMTP real)
-EMAIL_HOST = os.getenv("EMAIL_HOST", "")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "true").lower() == "true"
+EMAIL_HOST = config("EMAIL_HOST", default="")
+EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
 
-GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY", "")
+# Google Maps API Key
+GOOGLE_MAPS_API_KEY = config("GOOGLE_MAPS_API_KEY", default="")

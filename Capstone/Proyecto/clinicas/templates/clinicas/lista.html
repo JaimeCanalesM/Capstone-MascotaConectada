@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block titulo %}Clínicas{% endblock %}
+{% block titulo %}Clínicas Veterinarias{% endblock %}
+
 {% block contenido %}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h1 class="h4 mb-0">Clínicas</h1>
-  <!-- Sin acciones de crear/editar/eliminar -->
+  <h1 class="h4 mb-0">Clínicas Veterinarias Cercanas</h1>
 </div>
 
 <form class="row g-2 mb-3" method="get">
@@ -12,42 +12,263 @@
     <input class="form-control" type="search" name="q" value="{{ q }}" placeholder="Buscar por nombre, dirección o servicios…">
   </div>
   <div class="col-auto">
-    <button class="btn btn-outline-secondary">Buscar</button>
+    <button class="btn btn-outline-secondary" type="submit">Buscar</button>
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-primary" type="button" id="btnUbicarme">
+      📍 Ubicarme
+    </button>
   </div>
 </form>
 
 {% if clinicas %}
-  <div class="list-group">
+  <!-- MAPA INTERACTIVO -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">Mapa de Clínicas</h5>
+    </div>
+    <div class="card-body p-0">
+      <div id="map" style="height: 500px; width: 100%;"></div>
+    </div>
+    <div class="card-footer text-muted">
+      <small>Haz clic en un marcador para ver información de la clínica. Click en "Cómo llegar" para abrir Google Maps.</small>
+    </div>
+  </div>
+
+  <!-- LISTA DE CLÍNICAS -->
+  <h5 class="mb-3">Lista de Clínicas ({{ clinicas|length }})</h5>
+  <div class="row" id="clinicasList">
     {% for c in clinicas %}
-      <a class="list-group-item list-group-item-action" href="{% url 'clinicas:detalle' c.pk %}">
-        <div class="d-flex w-100 justify-content-between">
-          <h5 class="mb-1">{{ c.nombre }}</h5>
-          <small class="text-muted">{{ c.telefono }}</small>
+      <div class="col-md-6 col-lg-4 mb-3" data-clinica-id="{{ c.id }}">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">{{ c.nombre }}</h5>
+            <p class="card-text">
+              <small class="text-muted">
+                <i class="bi bi-geo-alt"></i> {{ c.direccion }}<br>
+                {% if c.telefono %}<i class="bi bi-telephone"></i> {{ c.telefono }}<br>{% endif %}
+                {% if c.horario %}<i class="bi bi-clock"></i> {{ c.horario }}<br>{% endif %}
+              </small>
+            </p>
+            {% if c.servicios %}
+              <p class="card-text"><small>{{ c.servicios|truncatechars:100 }}</small></p>
+            {% endif %}
+          </div>
+          <div class="card-footer">
+            <div class="d-flex gap-2">
+              <a href="{% url 'clinicas:detalle' c.pk %}" class="btn btn-sm btn-outline-primary flex-fill">Ver detalle</a>
+              {% if c.lat and c.lng %}
+                <a href="https://www.google.com/maps/dir/?api=1&destination={{ c.lat }},{{ c.lng }}"
+                   target="_blank"
+                   class="btn btn-sm btn-success flex-fill">
+                  Cómo llegar
+                </a>
+              {% endif %}
+            </div>
+          </div>
         </div>
-        <p class="mb-1 text-muted">{{ c.direccion }}</p>
-        {% if c.servicios %}<small class="text-muted">{{ c.servicios|truncatechars:120 }}</small>{% endif %}
-      </a>
+      </div>
     {% endfor %}
   </div>
 
-  {% if is_paginated %}
-  <nav class="mt-3">
-    <ul class="pagination">
-      {% if page_obj.has_previous %}
-        <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.previous_page_number }}">«</a></li>
-      {% else %}<li class="page-item disabled"><span class="page-link">«</span></li>{% endif %}
-      <li class="page-item disabled"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
-      {% if page_obj.has_next %}
-        <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.next_page_number }}">»</a></li>
-      {% else %}<li class="page-item disabled"><span class="page-link">»</span></li>{% endif %}
-    </ul>
-  </nav>
-  {% endif %}
-
 {% else %}
   <div class="alert alert-info">
-    Aún no hay clínicas disponibles. Próximamente se mostrarán automáticamente con la integración de mapas.
+    <h5>No hay clínicas disponibles</h5>
+    <p class="mb-0">Aún no hay clínicas registradas con ubicación. Por favor, contacta al administrador para agregar clínicas.</p>
   </div>
 {% endif %}
 
+{% endblock %}
+
+{% block extra_js %}
+{% if google_maps_api_key %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places"></script>
+<script>
+let map;
+let userMarker;
+let clinicasData = {{ clinicas_json|safe }};
+let markers = [];
+let infoWindows = [];
+
+function initMap() {
+  // Centro inicial: Santiago de Chile
+  const defaultCenter = { lat: -33.4489, lng: -70.6693 };
+
+  map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 12,
+    center: defaultCenter,
+    mapTypeControl: true,
+    streetViewControl: true,
+    fullscreenControl: true,
+  });
+
+  // Agregar marcadores de clínicas
+  clinicasData.forEach((clinica, index) => {
+    const marker = new google.maps.Marker({
+      position: { lat: clinica.lat, lng: clinica.lng },
+      map: map,
+      title: clinica.nombre,
+      animation: google.maps.Animation.DROP,
+      icon: {
+        url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
+      }
+    });
+
+    const infoWindow = new google.maps.InfoWindow({
+      content: `
+        <div style="max-width: 250px;">
+          <h6 class="mb-2"><strong>${clinica.nombre}</strong></h6>
+          <p class="mb-1 text-muted small">${clinica.direccion}</p>
+          ${clinica.telefono ? `<p class="mb-1 small">📞 ${clinica.telefono}</p>` : ''}
+          <div class="mt-2">
+            <a href="https://www.google.com/maps/dir/?api=1&destination=${clinica.lat},${clinica.lng}"
+               target="_blank"
+               class="btn btn-sm btn-success">
+              Cómo llegar
+            </a>
+          </div>
+        </div>
+      `
+    });
+
+    marker.addListener("click", () => {
+      // Cerrar otras ventanas
+      infoWindows.forEach(iw => iw.close());
+      infoWindow.open(map, marker);
+
+      // Resaltar tarjeta correspondiente
+      document.querySelectorAll('[data-clinica-id]').forEach(el => {
+        el.classList.remove('border-primary');
+      });
+      const card = document.querySelector(`[data-clinica-id="${clinica.id}"]`);
+      if (card) {
+        card.classList.add('border-primary');
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
+
+    markers.push(marker);
+    infoWindows.push(infoWindow);
+  });
+
+  // Ajustar vista para mostrar todos los marcadores
+  if (clinicasData.length > 0) {
+    const bounds = new google.maps.LatLngBounds();
+    clinicasData.forEach(clinica => {
+      bounds.extend({ lat: clinica.lat, lng: clinica.lng });
+    });
+    map.fitBounds(bounds);
+  }
+}
+
+// Botón "Ubicarme"
+document.getElementById('btnUbicarme').addEventListener('click', function() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const userPos = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+
+        // Centrar mapa en ubicación del usuario
+        map.setCenter(userPos);
+        map.setZoom(13);
+
+        // Agregar o actualizar marcador del usuario
+        if (userMarker) {
+          userMarker.setPosition(userPos);
+        } else {
+          userMarker = new google.maps.Marker({
+            position: userPos,
+            map: map,
+            title: "Tu ubicación",
+            icon: {
+              url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+            },
+            animation: google.maps.Animation.BOUNCE
+          });
+
+          setTimeout(() => {
+            userMarker.setAnimation(null);
+          }, 2000);
+        }
+
+        // Calcular distancias y ordenar clínicas
+        calcularDistancias(userPos);
+      },
+      (error) => {
+        alert('Error al obtener tu ubicación: ' + error.message);
+      }
+    );
+  } else {
+    alert('Tu navegador no soporta geolocalización.');
+  }
+});
+
+function calcularDistancias(userPos) {
+  // Calcular distancia usando fórmula de Haversine
+  clinicasData.forEach(clinica => {
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = (clinica.lat - userPos.lat) * Math.PI / 180;
+    const dLng = (clinica.lng - userPos.lng) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(userPos.lat * Math.PI / 180) * Math.cos(clinica.lat * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    clinica.distancia = R * c;
+  });
+
+  // Ordenar por distancia
+  clinicasData.sort((a, b) => a.distancia - b.distancia);
+
+  // Actualizar UI con distancias
+  const listContainer = document.getElementById('clinicasList');
+  listContainer.innerHTML = '';
+
+  clinicasData.forEach(clinica => {
+    const cardHtml = `
+      <div class="col-md-6 col-lg-4 mb-3" data-clinica-id="${clinica.id}">
+        <div class="card h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h5 class="card-title mb-0">${clinica.nombre}</h5>
+              <span class="badge bg-primary">${clinica.distancia.toFixed(1)} km</span>
+            </div>
+            <p class="card-text">
+              <small class="text-muted">
+                📍 ${clinica.direccion}<br>
+                ${clinica.telefono ? `📞 ${clinica.telefono}<br>` : ''}
+              </small>
+            </p>
+          </div>
+          <div class="card-footer">
+            <div class="d-flex gap-2">
+              <a href="/clinicas/${clinica.id}/" class="btn btn-sm btn-outline-primary flex-fill">Ver detalle</a>
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${clinica.lat},${clinica.lng}"
+                 target="_blank"
+                 class="btn btn-sm btn-success flex-fill">
+                Cómo llegar
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    listContainer.insertAdjacentHTML('beforeend', cardHtml);
+  });
+}
+
+// Inicializar mapa cuando el DOM esté listo
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initMap);
+} else {
+  initMap();
+}
+</script>
+{% else %}
+<script>
+  alert('Google Maps API Key no configurada. Por favor, contacta al administrador.');
+</script>
+{% endif %}
 {% endblock %}

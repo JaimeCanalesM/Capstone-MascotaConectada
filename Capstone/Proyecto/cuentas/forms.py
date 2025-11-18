@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from .models import Perfil
+from .validators import validar_rut_chileno, formatear_rut
 
 # Utilidades para aplicar clases Bootstrap automáticamente
 def add_bs_classes(fields, select_fields=None):
@@ -34,6 +35,13 @@ class UnifiedSignupForm(UserCreationForm):
         help_text="Seleccionar solo si ejerce como veterinario."
     )
 
+    vet_rut = forms.CharField(
+        label="RUT",
+        max_length=12,
+        required=False,
+        help_text="Formato: 12.345.678-9"
+    )
+
     vet_registro = forms.CharField(
         label="Registro profesional",
         max_length=100,
@@ -48,9 +56,9 @@ class UnifiedSignupForm(UserCreationForm):
 
     # Archivo obligatorio si es veterinario
     licencia_medica = forms.FileField(
-        label="Licencia médica / Título profesional",
+        label="Título de médico veterinario",
         required=False,
-        help_text="Subir PDF, JPG o PNG. Obligatorio si marca 'Soy veterinario'."
+        help_text="Subir PDF, JPG o PNG del título profesional. Obligatorio si marca 'Soy veterinario'."
     )
 
     class Meta:
@@ -58,7 +66,7 @@ class UnifiedSignupForm(UserCreationForm):
         fields = (
             "username", "first_name", "last_name", "email",
             "password1", "password2",
-            "is_veterinario", "vet_registro", "vet_clinica",
+            "is_veterinario", "vet_rut", "vet_registro", "vet_clinica",
             "licencia_medica",
         )
 
@@ -77,6 +85,7 @@ class UnifiedSignupForm(UserCreationForm):
         cleaned = super().clean()
         is_vet = cleaned.get("is_veterinario")
 
+        rut = cleaned.get("vet_rut", "").strip()
         reg = cleaned.get("vet_registro", "").strip()
         clinica = cleaned.get("vet_clinica", "").strip()
         archivo = cleaned.get("licencia_medica")
@@ -84,17 +93,29 @@ class UnifiedSignupForm(UserCreationForm):
         # Si es veterinario, se obliga a completar todo
         if is_vet:
 
+            # RUT obligatorio
+            if not rut:
+                self.add_error("vet_rut", "Debes ingresar tu RUT.")
+            else:
+                # Validar formato y dígito verificador del RUT
+                try:
+                    validar_rut_chileno(rut)
+                    # Formatear RUT automáticamente
+                    cleaned["vet_rut"] = formatear_rut(rut)
+                except ValidationError as e:
+                    self.add_error("vet_rut", e.message)
+
             # Registro profesional
             if not reg:
                 self.add_error("vet_registro", "Debes ingresar tu número de registro profesional.")
 
             # Clínica
             if not clinica:
-                self.add_error("vet_clinica", "Debes indicar la clínica o centro donde ejercen.")
+                self.add_error("vet_clinica", "Debes indicar la clínica o centro donde ejerces.")
 
-            # Archivo obligatorio
+            # Archivo obligatorio (título de médico veterinario)
             if not archivo:
-                self.add_error("licencia_medica", "Debes subir tu licencia médica o título profesional.")
+                self.add_error("licencia_medica", "Debes subir tu título de médico veterinario.")
             else:
                 # Validación de tipo
                 ext = archivo.name.lower().split(".")[-1]
@@ -121,10 +142,11 @@ class UnifiedSignupForm(UserCreationForm):
                 perfil.rol = Perfil.ROL_VET
                 perfil.vet_estado = Perfil.VET_PENDIENTE
 
+                perfil.vet_rut = self.cleaned_data.get("vet_rut", "")
                 perfil.vet_registro = self.cleaned_data.get("vet_registro", "")
                 perfil.vet_clinica = self.cleaned_data.get("vet_clinica", "")
 
-                # Guardar archivo de licencia médica
+                # Guardar archivo del título de médico veterinario
                 archivo = self.cleaned_data.get("licencia_medica")
                 if archivo:
                     perfil.licencia_medica = archivo
@@ -132,6 +154,7 @@ class UnifiedSignupForm(UserCreationForm):
             else:
                 perfil.rol = Perfil.ROL_DUENO
                 perfil.vet_estado = None
+                perfil.vet_rut = ""
                 perfil.vet_registro = ""
                 perfil.vet_clinica = ""
                 perfil.licencia_medica = None

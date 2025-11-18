@@ -3,9 +3,9 @@ from .models import Perfil
 
 @admin.register(Perfil)
 class PerfilAdmin(admin.ModelAdmin):
-    list_display = ("user", "rol", "vet_estado", "vet_registro", "vet_clinica", "creado", "actualizado")
+    list_display = ("user", "rol", "vet_estado", "vet_rut", "vet_registro", "vet_clinica", "creado", "actualizado")
     list_filter = ("rol", "vet_estado")
-    search_fields = ("user__username", "user__email", "vet_registro", "vet_clinica")
+    search_fields = ("user__username", "user__email", "vet_rut", "vet_registro", "vet_clinica")
 
     actions = ["aprobar_veterinarios", "rechazar_veterinarios"]
 

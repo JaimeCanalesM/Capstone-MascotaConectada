@@ -1,15 +1,119 @@
 {% extends "base.html" %}
 {% block titulo %}{{ clinica.nombre }}{% endblock %}
 {% block contenido %}
-<h1 class="h4 mb-3">{{ clinica.nombre }}</h1>
-<p class="mb-1"><strong>Dirección:</strong> {{ clinica.direccion }}</p>
-{% if clinica.telefono %}<p class="mb-1"><strong>Teléfono:</strong> <a href="tel:{{ clinica.telefono }}">{{ clinica.telefono }}</a></p>{% endif %}
-{% if clinica.email %}<p class="mb-1"><strong>Email:</strong> <a href="mailto:{{ clinica.email }}">{{ clinica.email }}</a></p>{% endif %}
-{% if clinica.horario %}<p class="mb-1"><strong>Horario:</strong> {{ clinica.horario }}</p>{% endif %}
-{% if clinica.servicios %}<p class="mb-3"><strong>Servicios:</strong><br>{{ clinica.servicios|linebreaksbr }}</p>{% endif %}
-{% if clinica.lat and clinica.lng %}
-  <p class="text-muted">Ubicación: {{ clinica.lat }}, {{ clinica.lng }}</p>
-{% endif %}
 
-<a class="btn btn-outline-secondary" href="{% url 'clinicas:lista' %}">Volver</a>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">{{ clinica.nombre }}</h1>
+</div>
+
+<div class="row">
+  <!-- Información de la clínica -->
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-header">
+        <h5 class="mb-0">Información de Contacto</h5>
+      </div>
+      <div class="card-body">
+        <p class="mb-2"><strong>📍 Dirección:</strong><br>{{ clinica.direccion }}</p>
+        {% if clinica.telefono %}
+          <p class="mb-2"><strong>📞 Teléfono:</strong><br><a href="tel:{{ clinica.telefono }}">{{ clinica.telefono }}</a></p>
+        {% endif %}
+        {% if clinica.email %}
+          <p class="mb-2"><strong>📧 Email:</strong><br><a href="mailto:{{ clinica.email }}">{{ clinica.email }}</a></p>
+        {% endif %}
+        {% if clinica.horario %}
+          <p class="mb-2"><strong>🕐 Horario:</strong><br>{{ clinica.horario }}</p>
+        {% endif %}
+        {% if clinica.servicios %}
+          <p class="mb-0"><strong>🩺 Servicios:</strong><br>{{ clinica.servicios|linebreaksbr }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary flex-fill" href="{% url 'clinicas:lista' %}">
+        ← Volver
+      </a>
+      {% if clinica.lat and clinica.lng %}
+        <a class="btn btn-success flex-fill"
+           href="https://www.google.com/maps/dir/?api=1&destination={{ clinica.lat }},{{ clinica.lng }}"
+           target="_blank">
+          🗺️ Cómo llegar
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Mapa -->
+  <div class="col-md-6">
+    {% if clinica.lat and clinica.lng %}
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Ubicación en el Mapa</h5>
+        </div>
+        <div class="card-body p-0">
+          <div id="map" style="height: 400px; width: 100%;"></div>
+        </div>
+        <div class="card-footer text-muted">
+          <small>Coordenadas: {{ clinica.lat }}, {{ clinica.lng }}</small>
+        </div>
+      </div>
+    {% else %}
+      <div class="alert alert-warning">
+        Esta clínica aún no tiene ubicación registrada en el mapa.
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{% if clinica.lat and clinica.lng and google_maps_api_key %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}"></script>
+<script>
+function initMap() {
+  const clinicaPos = { lat: {{ clinica.lat }}, lng: {{ clinica.lng }} };
+
+  const map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 15,
+    center: clinicaPos,
+    mapTypeControl: true,
+    streetViewControl: true,
+    fullscreenControl: true,
+  });
+
+  const marker = new google.maps.Marker({
+    position: clinicaPos,
+    map: map,
+    title: "{{ clinica.nombre }}",
+    animation: google.maps.Animation.DROP,
+  });
+
+  const infoWindow = new google.maps.InfoWindow({
+    content: `
+      <div style="max-width: 200px;">
+        <h6><strong>{{ clinica.nombre }}</strong></h6>
+        <p class="mb-1 small">{{ clinica.direccion }}</p>
+        {% if clinica.telefono %}<p class="mb-0 small">📞 {{ clinica.telefono }}</p>{% endif %}
+      </div>
+    `
+  });
+
+  marker.addListener("click", () => {
+    infoWindow.open(map, marker);
+  });
+
+  // Mostrar info window automáticamente
+  infoWindow.open(map, marker);
+}
+
+// Inicializar mapa cuando el DOM esté listo
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initMap);
+} else {
+  initMap();
+}
+</script>
+{% endif %}
 {% endblock %}
