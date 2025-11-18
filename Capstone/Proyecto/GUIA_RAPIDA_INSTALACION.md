@@ -88,18 +88,18 @@ python manage.py runserver
 
 ## 7. VERIFICAR FUNCIONALIDADES
 
-### ✅ Seguridad
+###  Seguridad
 - Variables de entorno configuradas
 - No hay credenciales en el código
 
-### ✅ Registro de Veterinarios
+###  Registro de Veterinarios
 - Ir a: http://localhost:8000/cuentas/registro/
 - Marcar "Soy veterinario"
 - Completar RUT (ej: 12.345.678-5)
 - Subir título de médico veterinario
 - Registrar
 
-### ✅ Google Maps
+###  Google Maps
 - Ir a: http://localhost:8000/clinicas/
 - Ver mapa interactivo
 - Hacer clic en "Ubicarme" (otorgar permiso)
@@ -124,11 +124,3 @@ pip install python-decouple
 - El dígito verificador debe ser correcto
 
 ---
-
-## DOCUMENTACIÓN COMPLETA
-
-Ver: [CAMBIOS_REALIZADOS.md](CAMBIOS_REALIZADOS.md)
-
----
-
-**¡Listo!** Tu sistema MascotaConectada está configurado.
