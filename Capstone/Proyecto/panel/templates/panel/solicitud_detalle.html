@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block titulo %}Solicitud #{{ solicitud.id }} - Panel Admin{% endblock %}
+
+{% block contenido %}
+<div class="container my-4">
+
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+
+      <!-- Header -->
+      <div class="mb-4">
+        <a href="{% url 'panel:solicitudes_lista' %}" class="btn btn-outline-secondary btn-sm mb-2">
+          Volver a Solicitudes
+        </a>
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h1 class="h3 mb-0">Solicitud #{{ solicitud.id }}</h1>
+            <p class="text-muted">{{ solicitud.asunto }}</p>
+          </div>
+          <div>
+            {% if solicitud.estado == 'PENDIENTE' %}
+              <span class="badge bg-warning fs-6">Pendiente</span>
+            {% elif solicitud.estado == 'EN_REVISION' %}
+              <span class="badge bg-info fs-6">En Revisión</span>
+            {% elif solicitud.estado == 'RESUELTA' %}
+              <span class="badge bg-success fs-6">Resuelta</span>
+            {% else %}
+              <span class="badge bg-danger fs-6">Rechazada</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="row g-4">
+
+        <!-- Left Column: Solicitud Details -->
+        <div class="col-lg-8">
+          <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom">
+              <h5 class="mb-0">Detalles de la Solicitud</h5>
+            </div>
+            <div class="card-body">
+              <div class="mb-3">
+                <label class="text-muted small mb-1">Asunto</label>
+                <p class="mb-0 fw-semibold">{{ solicitud.asunto }}</p>
+              </div>
+
+              <hr>
+
+              <div class="mb-3">
+                <label class="text-muted small mb-1">Descripción Completa</label>
+                <div class="bg-light p-3 rounded">
+                  {{ solicitud.descripcion|linebreaks }}
+                </div>
+              </div>
+
+              {% if solicitud.archivo_adjunto %}
+                <hr>
+                <div class="mb-3">
+                  <label class="text-muted small mb-1">Archivo Adjunto</label>
+                  <p class="mb-0">
+                    <a href="{{ solicitud.archivo_adjunto.url }}" class="btn btn-sm btn-outline-primary" download>
+                      Descargar Archivo
+                    </a>
+                  </p>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Admin Response -->
+          {% if solicitud.respuesta_admin %}
+            <div class="card shadow-sm border-success">
+              <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Respuesta del Administrador</h5>
+              </div>
+              <div class="card-body">
+                <div class="bg-light p-3 rounded">
+                  {{ solicitud.respuesta_admin|linebreaks }}
+                </div>
+                {% if solicitud.resuelta_en %}
+                  <small class="text-muted d-block mt-2">
+                    Respondida: {{ solicitud.resuelta_en|date:"d/m/Y H:i" }}
+                  </small>
+                {% endif %}
+              </div>
+            </div>
+          {% else %}
+            <div class="alert alert-warning">
+              <strong>Pendiente de Respuesta</strong>
+              <p class="mb-0">Esta solicitud aún no ha sido respondida. Usa el Django Admin para gestionarla.</p>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Right Column: Metadata -->
+        <div class="col-lg-4">
+
+          <!-- User Info -->
+          <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom">
+              <h6 class="mb-0">Información del Usuario</h6>
+            </div>
+            <div class="card-body">
+              <div class="mb-2">
+                <label class="text-muted small mb-1">Usuario</label>
+                <p class="mb-0">{{ solicitud.usuario.get_full_name|default:solicitud.usuario.username }}</p>
+              </div>
+              <hr>
+              <div class="mb-2">
+                <label class="text-muted small mb-1">Email</label>
+                <p class="mb-0 small">{{ solicitud.usuario.email }}</p>
+              </div>
+              <hr>
+              <div class="mb-0">
+                <label class="text-muted small mb-1">Usuario desde</label>
+                <p class="mb-0 small">{{ solicitud.usuario.date_joined|date:"d/m/Y" }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Solicitud Metadata -->
+          <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom">
+              <h6 class="mb-0">Metadata</h6>
+            </div>
+            <div class="card-body">
+              <div class="mb-2">
+                <label class="text-muted small mb-1">Tipo</label>
+                <p class="mb-0">
+                  <span class="badge bg-secondary">{{ solicitud.get_tipo_display }}</span>
+                </p>
+              </div>
+              <hr>
+              <div class="mb-2">
+                <label class="text-muted small mb-1">Prioridad</label>
+                <p class="mb-0">
+                  {% if solicitud.prioridad == 'BAJA' %}
+                    <span class="badge bg-secondary">Baja</span>
+                  {% elif solicitud.prioridad == 'MEDIA' %}
+                    <span class="badge bg-primary">Media</span>
+                  {% elif solicitud.prioridad == 'ALTA' %}
+                    <span class="badge bg-warning">Alta</span>
+                  {% else %}
+                    <span class="badge bg-danger">Urgente</span>
+                  {% endif %}
+                </p>
+              </div>
+              <hr>
+              <div class="mb-2">
+                <label class="text-muted small mb-1">Estado</label>
+                <p class="mb-0">
+                  {% if solicitud.estado == 'PENDIENTE' %}
+                    <span class="badge bg-warning">Pendiente</span>
+                  {% elif solicitud.estado == 'EN_REVISION' %}
+                    <span class="badge bg-info">En Revisión</span>
+                  {% elif solicitud.estado == 'RESUELTA' %}
+                    <span class="badge bg-success">Resuelta</span>
+                  {% else %}
+                    <span class="badge bg-danger">Rechazada</span>
+                  {% endif %}
+                </p>
+              </div>
+              <hr>
+              {% if solicitud.mascota %}
+                <div class="mb-2">
+                  <label class="text-muted small mb-1">Mascota Relacionada</label>
+                  <p class="mb-0">
+                    <a href="{% url 'mascota:detalle' solicitud.mascota.pk %}" class="text-decoration-none">
+                      {{ solicitud.mascota.nombre }}
+                    </a>
+                  </p>
+                </div>
+                <hr>
+              {% endif %}
+              <div class="mb-2">
+                <label class="text-muted small mb-1">Creada</label>
+                <p class="mb-0 small">{{ solicitud.creada_en|date:"d/m/Y H:i" }}</p>
+              </div>
+              <hr>
+              <div class="mb-0">
+                <label class="text-muted small mb-1">Actualizada</label>
+                <p class="mb-0 small">{{ solicitud.actualizada_en|date:"d/m/Y H:i" }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="card shadow-sm border-primary">
+            <div class="card-header bg-primary text-white">
+              <h6 class="mb-0">Acciones</h6>
+            </div>
+            <div class="card-body">
+              <p class="small mb-3">Para gestionar esta solicitud (cambiar estado, agregar respuesta, modificar prioridad), usa el Django Admin:</p>
+              <a href="/admin/solicitudes/solicitud/{{ solicitud.pk }}/change/" class="btn btn-primary w-100 mb-2" target="_blank">
+                Abrir en Django Admin
+              </a>
+              <a href="{% url 'panel:solicitudes_lista' %}" class="btn btn-outline-secondary w-100">
+                Volver a la Lista
+              </a>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

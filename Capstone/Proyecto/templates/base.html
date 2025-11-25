@@ -56,10 +56,9 @@
 </head>
 
 <body>
-  <!-- NAVBAR: color verde #27d88b -->
+  <!-- NAVBAR -->
   <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #27d88b; color: white;">
     <div class="container">
-      <span class="logo">🐾</span>
       <a class="navbar-brand fw-bold" href="/">MascotaConectada</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mcNav"
         aria-controls="mcNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -69,19 +68,37 @@
       <div class="collapse navbar-collapse" id="mcNav">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item"><a class="nav-link" href="{% url 'clinicas:lista' %}">Clínicas</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'mascota:lista' %}">Mis mascotas</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'citas:lista' %}">Citas</a></li>
-          <!-- Eliminado el link roto a 'citas:proximas' -->
-          <li class="nav-item"><a class="nav-link" href="{% url 'historial:lista' %}">Historial</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'core:nosotros' %}">Nosotros</a></li>
 
-          <!-- Admin SOLO staff/superuser (sin paréntesis) -->
           {% if user.is_authenticated %}
-          {% if user.is_staff or user.is_superuser %}
-          <li class="nav-item"><a class="nav-link" href="{% url 'panel:dashboard' %}">Admin</a></li>
+            {% if user.is_staff or user.is_superuser or user.perfil.rol == 'VET' %}
+              <li class="nav-item"><a class="nav-link" href="{% url 'mascota:lista' %}">Mascotas</a></li>
+            {% else %}
+              <li class="nav-item"><a class="nav-link" href="{% url 'mascota:lista' %}">Mis mascotas</a></li>
+            {% endif %}
+          {% else %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'mascota:lista' %}">Mis mascotas</a></li>
           {% endif %}
+
+          <li class="nav-item"><a class="nav-link" href="{% url 'citas:lista' %}">Citas</a></li>
+
+          <!-- Solicitudes (solo usuarios autenticados) -->
+          {% if user.is_authenticated %}
+          <li class="nav-item"><a class="nav-link" href="{% url 'solicitudes:lista' %}">Solicitudes</a></li>
           {% endif %}
         </ul>
+
+        <!-- Botón Admin destacado (separado del resto) -->
+        {% if user.is_authenticated %}
+          {% if user.is_staff or user.is_superuser %}
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a class="nav-link btn btn-warning text-dark fw-bold px-3 py-2" href="{% url 'panel:dashboard' %}" style="border-radius: 8px;">
+                Panel Admin
+              </a>
+            </li>
+          </ul>
+          {% endif %}
+        {% endif %}
 
         <ul class="navbar-nav ms-auto">
           {% if user.is_authenticated %}
@@ -141,13 +158,12 @@
     {% block contenido %}{% endblock %}
   </main>
 
-  <!-- FOOTER: color verde #27d88b -->
+  <!-- FOOTER -->
   <footer class="mt-5 py-4" style="background-color: #27d88b;">
     <div class="container">
       <div class="row gy-3 align-items-center">
         <div class="col-md-6">
           <div class="d-flex align-items-center gap-2">
-            <span>🐾</span>
             <div>
               <strong style="color: white;">MascotaConectada</strong><br>
               <small style="color: rgba(255, 255, 255, 0.9);">Conecta a tu mejor amigo con la mejor atención</small>
@@ -157,7 +173,8 @@
         <div class="col-md-6 text-md-end">
           <small class="d-block" style="color: rgba(255, 255, 255, 0.9);">© {% now "Y" %} MascotaConectada</small>
           <small>
-            <a href="{% url 'clinicas:lista' %}" style="text-decoration: none;">Clínicas</a>
+            <a href="{% url 'core:nosotros' %}" style="text-decoration: none;">Nosotros</a>
+            · <a href="{% url 'clinicas:lista' %}" style="text-decoration: none;">Clínicas</a>
             · <a href="{% url 'login' %}" style="text-decoration: none;">Ingresar</a>
             · <a href="{% url 'cuentas:registro' %}" style="text-decoration: none;">Registrarme</a>
             {% if user.is_authenticated %}

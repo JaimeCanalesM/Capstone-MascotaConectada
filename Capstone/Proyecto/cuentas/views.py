@@ -77,11 +77,55 @@ def redireccion_post_login(request):
 # ---------------------------------------------------------------------
 @login_required
 def perfil(request):
+    from mascota.models import Mascota
+    from solicitudes.models import Solicitud
+
     perfil = getattr(request.user, "perfil", None)
+    user = request.user
+
+    # Estadísticas según rol
+    estadisticas = {}
+
+    if perfil and perfil.rol == Perfil.ROL_DUENO:
+        # Dueño: mascotas, solicitudes
+        estadisticas['mascotas'] = Mascota.objects.filter(DUENO=user).count()
+        estadisticas['solicitudes_totales'] = Solicitud.objects.filter(usuario=user).count()
+        estadisticas['solicitudes_pendientes'] = Solicitud.objects.filter(
+            usuario=user,
+            estado__in=['PENDIENTE', 'EN_REVISION']
+        ).count()
+        estadisticas['citas_proximas'] = Cita.objects.filter(
+            mascota__DUENO=user,
+            estado='PENDIENTE'
+        ).count()
+
+    elif perfil and perfil.rol == Perfil.ROL_VET:
+        # Veterinario: citas atendidas, citas pendientes
+        estadisticas['citas_completadas'] = Cita.objects.filter(
+            veterinario=user,
+            estado='COMPLETADA'
+        ).count()
+        estadisticas['citas_proximas'] = Cita.objects.filter(
+            veterinario=user,
+            estado='PENDIENTE'
+        ).count()
+        estadisticas['mascotas_atendidas'] = Mascota.objects.filter(
+            eventoclinico__veterinario=user
+        ).distinct().count()
+
+    # Admin/Staff
+    if user.is_staff or user.is_superuser:
+        from django.contrib.auth.models import User
+        estadisticas['total_usuarios'] = User.objects.count()
+        estadisticas['total_mascotas'] = Mascota.objects.count()
+        estadisticas['solicitudes_pendientes'] = Solicitud.objects.filter(
+            estado__in=['PENDIENTE', 'EN_REVISION']
+        ).count()
 
     contexto = {
         "perfil": perfil,
-        "user": request.user,
+        "user": user,
+        "estadisticas": estadisticas,
     }
     return render(request, "cuentas/perfil.html", contexto)
 

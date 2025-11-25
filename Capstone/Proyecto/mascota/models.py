@@ -14,6 +14,13 @@ class Mascota(models.Model):
     raza = models.CharField(max_length=100, blank=True)
     sexo = models.CharField(max_length=1, choices=SEXO_CHOICES, blank=True)
     fecha_nacimiento = models.DateField(null=True, blank=True)
+    peso = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Peso en kilogramos"
+    )
     foto = models.ImageField(upload_to="mascotas/", null=True, blank=True)
     notas = models.TextField(blank=True)
 

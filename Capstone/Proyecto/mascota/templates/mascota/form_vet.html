@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block titulo %}{{ accion }} - {{ mascota.nombre }}{% endblock %}
+
+{% block contenido %}
+<div class="container my-4">
+
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+
+      <!-- Header -->
+      <div class="mb-4">
+        <a href="{% url 'mascota:detalle' mascota.pk %}" class="btn btn-outline-secondary btn-sm mb-2">
+          Volver a {{ mascota.nombre }}
+        </a>
+        <h1 class="h3 mb-0">{{ accion }}</h1>
+        <p class="text-muted">{{ mascota.nombre }} - {{ mascota.especie }}</p>
+      </div>
+
+      <!-- Form Card -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0">Información Médica</h5>
+          <small class="text-muted">Solo veterinarios y administradores pueden editar estos campos</small>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+              </div>
+            {% endif %}
+
+            <!-- Peso -->
+            <div class="mb-3">
+              <label for="{{ form.peso.id_for_label }}" class="form-label">
+                Peso (kg)
+              </label>
+              <input type="number" step="0.01" name="peso" value="{{ form.peso.value|default:'' }}"
+                     class="form-control" id="{{ form.peso.id_for_label }}"
+                     placeholder="Ej: 25.50">
+              {% if form.peso.errors %}
+                <div class="text-danger small">{{ form.peso.errors }}</div>
+              {% endif %}
+              <small class="text-muted">Peso actual de la mascota en kilogramos</small>
+            </div>
+
+            <!-- Sexo -->
+            <div class="mb-3">
+              <label for="{{ form.sexo.id_for_label }}" class="form-label">
+                Sexo
+              </label>
+              <select name="sexo" class="form-select" id="{{ form.sexo.id_for_label }}">
+                <option value="">No especificado</option>
+                <option value="M" {% if form.sexo.value == 'M' %}selected{% endif %}>Macho</option>
+                <option value="H" {% if form.sexo.value == 'H' %}selected{% endif %}>Hembra</option>
+              </select>
+              {% if form.sexo.errors %}
+                <div class="text-danger small">{{ form.sexo.errors }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Notas -->
+            <div class="mb-3">
+              <label for="{{ form.notas.id_for_label }}" class="form-label">
+                Notas Médicas
+              </label>
+              <textarea name="notas" class="form-control" id="{{ form.notas.id_for_label }}"
+                        rows="5" placeholder="Observaciones médicas, condiciones especiales, alergias, etc.">{{ form.notas.value|default:'' }}</textarea>
+              {% if form.notas.errors %}
+                <div class="text-danger small">{{ form.notas.errors }}</div>
+              {% endif %}
+              <small class="text-muted">Información médica adicional relevante para el tratamiento</small>
+            </div>
+
+            <!-- Buttons -->
+            <div class="d-flex gap-2 mt-4">
+              <button type="submit" class="btn btn-primary">
+                Guardar Cambios
+              </button>
+              <a href="{% url 'mascota:detalle' mascota.pk %}" class="btn btn-secondary">
+                Cancelar
+              </a>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+      <!-- Additional Info -->
+      <div class="alert alert-info mt-4">
+        <strong>Información:</strong> Estos campos son exclusivos para control médico. Los cambios quedarán registrados en el historial de la mascota.
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

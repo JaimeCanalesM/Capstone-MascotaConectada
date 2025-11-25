@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "panel",
     "citas",
     "historial",
+    "solicitudes",
 ]
 
 MIDDLEWARE = [

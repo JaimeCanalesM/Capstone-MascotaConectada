@@ -1,223 +1,519 @@
 {% extends "base.html" %}
-{% block titulo %}Panel de administración{% endblock %}
+{% block titulo %}Panel de Administración{% endblock %}
+
 {% block contenido %}
 <div class="container my-4">
 
-  <h1 class="h4 mb-4">Panel de administración</h1>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Panel de Administración</h1>
+    <div>
+      <a href="/admin/" class="btn btn-outline-secondary">Django Admin</a>
+    </div>
+  </div>
 
   <!-- ========================= -->
-  <!--      ESTADÍSTICAS         -->
+  <!--  MÉTRICAS RÁPIDAS        -->
   <!-- ========================= -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm">
+        <div class="card-body">
+          <h6 class="text-muted mb-2">Usuarios Totales</h6>
+          <h2 class="mb-0 fw-bold text-primary">{{ total_usuarios }}</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm">
+        <div class="card-body">
+          <h6 class="text-muted mb-2">Mascotas Registradas</h6>
+          <h2 class="mb-0 fw-bold text-success">{{ total_mascotas }}</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm">
+        <div class="card-body">
+          <h6 class="text-muted mb-2">Citas Totales</h6>
+          <h2 class="mb-0 fw-bold text-warning">{{ total_citas }}</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm">
+        <div class="card-body">
+          <h6 class="text-muted mb-2">Eventos Clínicos</h6>
+          <h2 class="mb-0 fw-bold text-info">{{ total_eventos }}</h2>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <h3 class="mt-5 mb-3">📊 Estadísticas del sistema</h3>
+  <!-- ========================= -->
+  <!--  ANÁLISIS PREDICTIVO     -->
+  <!-- ========================= -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+      <h5 class="mb-0">Análisis Predictivo & Estadísticas Avanzadas</h5>
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="p-3 bg-light rounded">
+            <h6 class="text-muted mb-2">Probabilidad de Registro de Mascota</h6>
+            <div class="d-flex align-items-center justify-content-between">
+              <h2 class="mb-0 fw-bold text-primary">{{ probabilidad_registro_mascota }}%</h2>
+              <small class="text-muted">
+                {{ usuarios_con_mascota }}/{{ total_usuarios }} usuarios
+              </small>
+            </div>
+            <div class="progress mt-2" style="height: 8px;">
+              <div class="progress-bar bg-primary" role="progressbar"
+                   style="width: {{ probabilidad_registro_mascota }}%"></div>
+            </div>
+            <small class="text-muted mt-1 d-block">
+              De cada 100 usuarios, {{ probabilidad_registro_mascota|floatformat:0 }} registran al menos una mascota
+            </small>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 bg-light rounded">
+            <h6 class="text-muted mb-2">Promedio Mascotas/Usuario</h6>
+            <h2 class="mb-0 fw-bold text-success">{{ promedio_mascotas }}</h2>
+            <small class="text-muted">Cada usuario tiene en promedio {{ promedio_mascotas }} mascotas</small>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 bg-light rounded">
+            <h6 class="text-muted mb-2">Promedio Citas/Mascota</h6>
+            <h2 class="mb-0 fw-bold text-warning">{{ promedio_citas_por_mascota }}</h2>
+            <small class="text-muted">Cada mascota tiene {{ promedio_citas_por_mascota }} citas en promedio</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <style>
-    .chart-small {
-      max-height: 180px !important;
-      height: 180px !important;
-    }
-  </style>
+  <!-- ========================= -->
+  <!--  GRÁFICOS PRINCIPALES    -->
+  <!-- ========================= -->
+  <h3 class="mt-4 mb-3">Gráficos de Tendencias</h3>
 
   <div class="row g-4">
 
-    <!-- Usuarios por mes -->
+    <!-- Usuarios por semana -->
     <div class="col-md-6">
       <div class="card shadow-sm">
-        <div class="card-header fw-bold">Usuarios registrados por mes</div>
+        <div class="card-header fw-bold">Usuarios Registrados por Semana</div>
         <div class="card-body">
-          <canvas id="usuariosMes" class="chart-small"></canvas>
+          <canvas id="usuariosSemanaChart" height="200"></canvas>
         </div>
       </div>
     </div>
 
-    <!-- Usuarios por rol -->
+    <!-- Distribución por rol -->
     <div class="col-md-6">
       <div class="card shadow-sm">
-        <div class="card-header fw-bold">Distribución por rol</div>
+        <div class="card-header fw-bold">Distribución por Rol</div>
         <div class="card-body">
-          <canvas id="rolesChart" class="chart-small"></canvas>
+          <canvas id="rolesChart" height="200"></canvas>
         </div>
       </div>
     </div>
 
-    <!-- Promedio mascotas -->
+    <!-- Citas Completadas vs Canceladas (6 meses) -->
     <div class="col-md-6">
       <div class="card shadow-sm">
-        <div class="card-header fw-bold">Promedio de mascotas por usuario</div>
-        <div class="card-body text-center">
-          <h2 class="fw-bold">{{ promedio_mascotas }}</h2>
-          <canvas id="mascotasChart" class="chart-small"></canvas>
+        <div class="card-header fw-bold">Citas Completadas vs Canceladas (últimos 6 meses)</div>
+        <div class="card-body">
+          <canvas id="citasEstadoChart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mascotas por Especie -->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header fw-bold">Mascotas por Especie</div>
+        <div class="card-body">
+          <canvas id="mascotasEspecieChart" height="200"></canvas>
         </div>
       </div>
     </div>
 
   </div>
 
-  <!-- JSON SCRIPT PARA LOS GRÁFICOS -->
-  {{ usuarios_por_mes|json_script:"usuarios_mes_json" }}
-  {{ total_duenos|json_script:"duenos_json" }}
-  {{ total_veterinarios_aprobados|json_script:"vets_ok_json" }}
-  {{ total_veterinarios_pendientes|json_script:"vets_pend_json" }}
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <script>
-    // --------- Usuarios por mes ----------
-    const usuariosMesRaw = JSON.parse(document.getElementById("usuarios_mes_json").textContent);
-
-    const usuariosMesLabels = usuariosMesRaw.map(item => item.m);
-    const usuariosMesData = usuariosMesRaw.map(item => item.total);
-
-    const ctxMes = document.getElementById('usuariosMes');
-    new Chart(ctxMes, {
-      type: 'line',
-      data: {
-        labels: usuariosMesLabels,
-        datasets: [{
-          label: 'Usuarios registrados',
-          data: usuariosMesData,
-          borderWidth: 3,
-          borderColor: '#27d88b',
-          backgroundColor: 'rgba(39,216,139,0.3)',
-          tension: 0.3
-        }]
-      }
-    });
-
-    // --------- Roles ----------
-    const duenos = JSON.parse(document.getElementById("duenos_json").textContent);
-    const vetsOk = JSON.parse(document.getElementById("vets_ok_json").textContent);
-    const vetsPend = JSON.parse(document.getElementById("vets_pend_json").textContent);
-
-    const ctxRoles = document.getElementById('rolesChart');
-    new Chart(ctxRoles, {
-      type: 'pie',
-      data: {
-        labels: ['Dueños', 'Vets Aprobados', 'Vets Pendientes'],
-        datasets: [{
-          data: [duenos, vetsOk, vetsPend],
-          backgroundColor: ['#27d88b', '#9ab513', '#ffc107']
-        }]
-      }
-    });
-
-    // -------- Promedio Mascotas -------
-    const ctxMascotas = document.getElementById('mascotasChart');
-    new Chart(ctxMascotas, {
-      type: 'bar',
-      data: {
-        labels: ['Promedio'],
-        datasets: [{
-          label: 'Mascotas por usuario',
-          data: [{{ promedio_mascotas }}],
-          backgroundColor: '#27d88b'
-        }]
-      }
-    });
-  </script>
-
-  <!-- ============================= -->
-  <!--      VETERINARIOS PENDIENTES -->
-  <!-- ============================= -->
-
-  <div class="card mb-4 mt-5">
+  <!-- ========================= -->
+  <!--  RANKING VETERINARIOS    -->
+  <!-- ========================= -->
+  <div class="card mt-4 shadow-sm">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <h5 class="mb-0">Solicitudes de veterinario</h5>
-      <small class="text-muted">Usuarios que marcaron "Soy veterinario"</small>
+      <h5 class="mb-0">Ranking de Veterinarios por Citas Atendidas</h5>
+      <span class="badge bg-primary">Top 10</span>
     </div>
     <div class="card-body p-0">
+      {% if ranking_veterinarios %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th width="60">#</th>
+                <th>Veterinario</th>
+                <th>Nombre Completo</th>
+                <th class="text-center">Citas Atendidas</th>
+                <th width="200">Progreso</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for v in ranking_veterinarios %}
+                <tr>
+                  <td class="text-center">
+                    {{ forloop.counter }}
+                  </td>
+                  <td><strong>{{ v.veterinario__username }}</strong></td>
+                  <td>{{ v.veterinario__first_name }} {{ v.veterinario__last_name }}</td>
+                  <td class="text-center">
+                    <span class="badge bg-success">{{ v.total_atendidas }}</span>
+                  </td>
+                  <td>
+                    <div class="progress" style="height: 20px;">
+                      <div class="progress-bar bg-success" role="progressbar"
+                           style="width: {% widthratio v.total_atendidas ranking_veterinarios.0.total_atendidas 100 %}%">
+                        {{ v.total_atendidas }}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="p-3 mb-0 text-muted">Aún no hay citas completadas por veterinarios.</p>
+      {% endif %}
+    </div>
+  </div>
 
+  <!-- ========================= -->
+  <!--  SOLICITUDES DE USUARIOS  -->
+  <!-- ========================= -->
+  <div class="card mt-4 shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Solicitudes de Usuarios</h5>
+      <div>
+        {% if solicitudes_urgentes > 0 %}
+          <span class="badge bg-danger me-2">{{ solicitudes_urgentes }} Urgentes</span>
+        {% endif %}
+        <span class="badge bg-warning">{{ solicitudes_pendientes }} Pendientes</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <!-- Resumen de solicitudes -->
+      <div class="row g-3 mb-3">
+        <div class="col-md-3">
+          <div class="p-3 bg-light rounded text-center">
+            <h6 class="text-muted mb-1">Total</h6>
+            <h3 class="mb-0 fw-bold">{{ total_solicitudes }}</h3>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="p-3 bg-warning bg-opacity-10 rounded text-center border border-warning">
+            <h6 class="text-muted mb-1">Pendientes</h6>
+            <h3 class="mb-0 fw-bold text-warning">{{ solicitudes_pendientes }}</h3>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="p-3 bg-info bg-opacity-10 rounded text-center border border-info">
+            <h6 class="text-muted mb-1">En Revisión</h6>
+            <h3 class="mb-0 fw-bold text-info">{{ solicitudes_en_revision }}</h3>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="p-3 bg-success bg-opacity-10 rounded text-center border border-success">
+            <h6 class="text-muted mb-1">Resueltas</h6>
+            <h3 class="mb-0 fw-bold text-success">{{ solicitudes_resueltas }}</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de solicitudes recientes -->
+      {% if solicitudes_recientes %}
+        <h6 class="mb-3">Últimas Solicitudes</h6>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th width="80">#ID</th>
+                <th>Usuario</th>
+                <th>Tipo</th>
+                <th>Asunto</th>
+                <th width="120">Estado</th>
+                <th width="100">Prioridad</th>
+                <th width="120">Fecha</th>
+                <th width="100">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for sol in solicitudes_recientes %}
+                <tr>
+                  <td><strong>#{{ sol.id }}</strong></td>
+                  <td>{{ sol.usuario.username }}</td>
+                  <td><small>{{ sol.get_tipo_display }}</small></td>
+                  <td>{{ sol.asunto|truncatewords:5 }}</td>
+                  <td>
+                    {% if sol.estado == 'PENDIENTE' %}
+                      <span class="badge bg-warning">Pendiente</span>
+                    {% elif sol.estado == 'EN_REVISION' %}
+                      <span class="badge bg-info">En Revisión</span>
+                    {% elif sol.estado == 'RESUELTA' %}
+                      <span class="badge bg-success">Resuelta</span>
+                    {% else %}
+                      <span class="badge bg-danger">Rechazada</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if sol.prioridad == 'URGENTE' %}
+                      <span class="badge bg-danger">Urgente</span>
+                    {% elif sol.prioridad == 'ALTA' %}
+                      <span class="badge bg-warning">Alta</span>
+                    {% elif sol.prioridad == 'MEDIA' %}
+                      <span class="badge bg-primary">Media</span>
+                    {% else %}
+                      <span class="badge bg-secondary">Baja</span>
+                    {% endif %}
+                  </td>
+                  <td><small>{{ sol.creada_en|date:"d/m/Y" }}</small></td>
+                  <td>
+                    <a href="/admin/solicitudes/solicitud/{{ sol.pk }}/change/" class="btn btn-sm btn-outline-primary" title="Gestionar">
+                      Gestionar
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="text-center mt-3">
+          <a href="/admin/solicitudes/solicitud/" class="btn btn-primary">Ver Todas las Solicitudes en Django Admin</a>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">No hay solicitudes registradas aún.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!--  VETERINARIOS PENDIENTES -->
+  <!-- ========================= -->
+  <div class="card mt-4 shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Solicitudes de Veterinario Pendientes</h5>
+      <span class="badge bg-warning">{{ vets_pendientes|length }}</span>
+    </div>
+    <div class="card-body p-0">
       {% if vets_pendientes %}
         <div class="table-responsive">
-          <table class="table mb-0 align-middle">
-            <thead>
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
               <tr>
                 <th>Usuario</th>
-                <th>Nombre completo</th>
+                <th>Nombre Completo</th>
                 <th>RUT</th>
-                <th>Teléfono</th>
-                <th>Licencia médica</th>
+                <th>Registro</th>
+                <th>Clínica</th>
+                <th>Licencia Médica</th>
                 <th class="text-end">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {% for v in vets_pendientes %}
                 <tr>
-                  <td>{{ v.user.username }}</td>
+                  <td><strong>{{ v.user.username }}</strong></td>
                   <td>{{ v.user.first_name }} {{ v.user.last_name }}</td>
-                  <td>{{ v.rut|default:"—" }}</td>
-                  <td>{{ v.telefono|default:"—" }}</td>
-
+                  <td>{{ v.vet_rut|default:"—" }}</td>
+                  <td>{{ v.vet_registro|default:"—" }}</td>
+                  <td>{{ v.vet_clinica|default:"—" }}</td>
                   <td>
                     {% if v.licencia_medica %}
                       <a href="{{ v.licencia_medica.url }}" target="_blank"
-                        class="btn btn-sm btn-outline-primary">
-                        Ver archivo
+                         class="btn btn-sm btn-outline-primary">
+                        Ver Título
                       </a>
                     {% else %}
                       <span class="text-muted">No adjuntó</span>
                     {% endif %}
                   </td>
-
                   <td class="text-end">
                     <a href="{% url 'panel:aprobar_vet' v.id %}" class="btn btn-sm btn-success">Aprobar</a>
-                    <a href="{% url 'panel:rechazar_vet' v.id %}" class="btn btn-sm btn-outline-danger">Rechazar</a>
+                    <a href="{% url 'panel:rechazar_vet' v.id %}" class="btn btn-sm btn-danger">Rechazar</a>
                   </td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
-
       {% else %}
         <p class="p-3 mb-0 text-muted">No hay solicitudes pendientes.</p>
       {% endif %}
     </div>
   </div>
 
-  <!-- ============================= -->
-  <!--    CITAS SIN HISTORIAL       -->
-  <!-- ============================= -->
-
-  <div class="card mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <h5 class="mb-0">Citas completadas sin historial</h5>
-      <small class="text-muted">Sugerencia: convertir en evento clínico</small>
-    </div>
-    <div class="card-body p-0">
-      {% if citas_sin_historial %}
-        <div class="table-responsive">
-          <table class="table mb-0 align-middle">
-            <thead>
-              <tr>
-                <th>ID cita</th>
-                <th>Mascota</th>
-                <th>Fecha</th>
-                <th>Hora</th>
-                <th class="text-end">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for c in citas_sin_historial %}
-                <tr>
-                  <td>#{{ c.id }}</td>
-                  <td>{{ c.mascota.nombre }}</td>
-                  <td>{{ c.fecha|date:"Y-m-d" }}</td>
-                  <td>{{ c.hora|time:"H:i" }}</td>
-                  <td class="text-end">
-                    <a href="{% url 'citas:a_historial' c.id %}" class="btn btn-sm btn-primary">→ historial</a>
-                    <a href="{% url 'citas:editar' c.id %}" class="btn btn-sm btn-outline-secondary">Ver cita</a>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      {% else %}
-        <p class="p-3 mb-0 text-muted">No hay citas pendientes de pasar a historial.</p>
-      {% endif %}
-    </div>
-  </div>
-
 </div>
+
+<!-- ========================= -->
+<!--  SCRIPTS CHART.JS        -->
+<!-- ========================= -->
+{{ usuarios_por_semana|json_script:"usuarios_semana_json" }}
+{{ total_duenos|json_script:"duenos_json" }}
+{{ total_veterinarios_aprobados|json_script:"vets_ok_json" }}
+{{ total_veterinarios_pendientes|json_script:"vets_pend_json" }}
+{{ citas_completadas|json_script:"citas_completadas_json" }}
+{{ citas_canceladas|json_script:"citas_canceladas_json" }}
+{{ citas_pendientes|json_script:"citas_pendientes_json" }}
+{{ citas_confirmadas|json_script:"citas_confirmadas_json" }}
+{{ mascotas_por_especie|json_script:"mascotas_especie_json" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// ========== USUARIOS POR SEMANA ==========
+const usuariosSemanaRaw = JSON.parse(document.getElementById("usuarios_semana_json").textContent);
+const usuariosSemanaLabels = usuariosSemanaRaw.map(item => `Semana ${item.semana}`);
+const usuariosSemanaData = usuariosSemanaRaw.map(item => item.total);
+
+new Chart(document.getElementById('usuariosSemanaChart'), {
+  type: 'line',
+  data: {
+    labels: usuariosSemanaLabels,
+    datasets: [{
+      label: 'Usuarios registrados',
+      data: usuariosSemanaData,
+      borderWidth: 3,
+      borderColor: '#27d88b',
+      backgroundColor: 'rgba(39,216,139,0.2)',
+      fill: true,
+      tension: 0.4,
+      pointRadius: 4,
+      pointHoverRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false }
+    }
+  }
+});
+
+// ========== DISTRIBUCIÓN POR ROL ==========
+const duenos = JSON.parse(document.getElementById("duenos_json").textContent);
+const vetsOk = JSON.parse(document.getElementById("vets_ok_json").textContent);
+const vetsPend = JSON.parse(document.getElementById("vets_pend_json").textContent);
+
+new Chart(document.getElementById('rolesChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Dueños', 'Vets Aprobados', 'Vets Pendientes'],
+    datasets: [{
+      data: [duenos, vetsOk, vetsPend],
+      backgroundColor: ['#27d88b', '#9ab513', '#ffc107'],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom' }
+    }
+  }
+});
+
+// ========== CITAS POR ESTADO (6 MESES) ==========
+const citasCompletadas = JSON.parse(document.getElementById("citas_completadas_json").textContent);
+const citasCanceladas = JSON.parse(document.getElementById("citas_canceladas_json").textContent);
+const citasPendientes = JSON.parse(document.getElementById("citas_pendientes_json").textContent);
+const citasConfirmadas = JSON.parse(document.getElementById("citas_confirmadas_json").textContent);
+
+new Chart(document.getElementById('citasEstadoChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Completadas', 'Canceladas', 'Pendientes', 'Confirmadas'],
+    datasets: [{
+      label: 'Número de Citas',
+      data: [citasCompletadas, citasCanceladas, citasPendientes, citasConfirmadas],
+      backgroundColor: [
+        'rgba(40, 167, 69, 0.8)',   // Verde para completadas
+        'rgba(220, 53, 69, 0.8)',    // Rojo para canceladas
+        'rgba(255, 193, 7, 0.8)',    // Amarillo para pendientes
+        'rgba(0, 123, 255, 0.8)'     // Azul para confirmadas
+      ],
+      borderColor: [
+        'rgb(40, 167, 69)',
+        'rgb(220, 53, 69)',
+        'rgb(255, 193, 7)',
+        'rgb(0, 123, 255)'
+      ],
+      borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false }
+    },
+    scales: {
+      y: { beginAtZero: true }
+    }
+  }
+});
+
+// ========== MASCOTAS POR ESPECIE ==========
+const mascotasEspecieRaw = JSON.parse(document.getElementById("mascotas_especie_json").textContent);
+const especieLabels = mascotasEspecieRaw.map(item => item.especie || 'Sin especificar');
+const especieData = mascotasEspecieRaw.map(item => item.total);
+
+// Generar colores dinámicos
+const colores = [
+  '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+  '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF9F40'
+];
+
+new Chart(document.getElementById('mascotasEspecieChart'), {
+  type: 'pie',
+  data: {
+    labels: especieLabels,
+    datasets: [{
+      data: especieData,
+      backgroundColor: colores.slice(0, especieLabels.length),
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: {
+          generateLabels: function(chart) {
+            const data = chart.data;
+            return data.labels.map((label, i) => ({
+              text: `${label}: ${data.datasets[0].data[i]}`,
+              fillStyle: data.datasets[0].backgroundColor[i],
+              hidden: false,
+              index: i
+            }));
+          }
+        }
+      }
+    }
+  }
+});
+</script>
+
 {% endblock %}

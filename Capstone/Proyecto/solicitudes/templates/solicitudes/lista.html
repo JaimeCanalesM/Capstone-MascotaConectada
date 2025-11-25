@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block titulo %}Mis Solicitudes{% endblock %}
+
+{% block contenido %}
+<div class="container my-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+      {% if user.is_staff %}
+        Todas las Solicitudes
+      {% else %}
+        Mis Solicitudes
+      {% endif %}
+    </h1>
+    <a href="{% url 'solicitudes:crear' %}" class="btn btn-primary">
+      Nueva Solicitud
+    </a>
+  </div>
+
+  <!-- Contadores -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h6 class="text-muted mb-2">Total</h6>
+          <h3 class="mb-0">{{ total_solicitudes }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center border-warning">
+        <div class="card-body">
+          <h6 class="text-muted mb-2">Pendientes</h6>
+          <h3 class="mb-0 text-warning">{{ pendientes }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center border-info">
+        <div class="card-body">
+          <h6 class="text-muted mb-2">En Revisión</h6>
+          <h3 class="mb-0 text-info">{{ en_revision }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center border-success">
+        <div class="card-body">
+          <h6 class="text-muted mb-2">Resueltas</h6>
+          <h3 class="mb-0 text-success">{{ resueltas }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Buscar</label>
+          <input type="search" name="q" value="{{ q }}" class="form-control" placeholder="Buscar en asunto o descripción...">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Estado</label>
+          <select name="estado" class="form-select">
+            <option value="">Todos los estados</option>
+            <option value="PENDIENTE" {% if estado_actual == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
+            <option value="EN_REVISION" {% if estado_actual == 'EN_REVISION' %}selected{% endif %}>En Revisión</option>
+            <option value="RESUELTA" {% if estado_actual == 'RESUELTA' %}selected{% endif %}>Resuelta</option>
+            <option value="RECHAZADA" {% if estado_actual == 'RECHAZADA' %}selected{% endif %}>Rechazada</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Tipo</label>
+          <select name="tipo" class="form-select">
+            <option value="">Todos los tipos</option>
+            <option value="EDITAR_MASCOTA" {% if tipo_actual == 'EDITAR_MASCOTA' %}selected{% endif %}>Editar Mascota</option>
+            <option value="ELIMINAR_MASCOTA" {% if tipo_actual == 'ELIMINAR_MASCOTA' %}selected{% endif %}>Eliminar Mascota</option>
+            <option value="PROBLEMA_TECNICO" {% if tipo_actual == 'PROBLEMA_TECNICO' %}selected{% endif %}>Problema Técnico</option>
+            <option value="CONSULTA_GENERAL" {% if tipo_actual == 'CONSULTA_GENERAL' %}selected{% endif %}>Consulta General</option>
+            <option value="CAMBIO_DATOS" {% if tipo_actual == 'CAMBIO_DATOS' %}selected{% endif %}>Cambio de Datos</option>
+            <option value="SUGERENCIA" {% if tipo_actual == 'SUGERENCIA' %}selected{% endif %}>Sugerencia</option>
+            <option value="OTRO" {% if tipo_actual == 'OTRO' %}selected{% endif %}>Otro</option>
+          </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Lista de solicitudes -->
+  {% if solicitudes %}
+    <div class="list-group mb-4">
+      {% for s in solicitudes %}
+        <a href="{% url 'solicitudes:detalle' s.pk %}" class="list-group-item list-group-item-action">
+          <div class="d-flex w-100 justify-content-between align-items-start">
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <h5 class="mb-0">{{ s.asunto }}</h5>
+                <span class="badge bg-secondary">#{{ s.id }}</span>
+              </div>
+              <p class="mb-1 text-muted">{{ s.get_tipo_display }}</p>
+              <small class="text-muted">
+                Creada: {{ s.creada_en|date:"d/m/Y H:i" }}
+                {% if s.mascota %}
+                  | Mascota: {{ s.mascota.nombre }}
+                {% endif %}
+                {% if user.is_staff %}
+                  | Usuario: {{ s.usuario.username }}
+                {% endif %}
+              </small>
+            </div>
+            <div class="text-end">
+              {% if s.estado == 'PENDIENTE' %}
+                <span class="badge bg-warning">Pendiente</span>
+              {% elif s.estado == 'EN_REVISION' %}
+                <span class="badge bg-info">En Revisión</span>
+              {% elif s.estado == 'RESUELTA' %}
+                <span class="badge bg-success">Resuelta</span>
+              {% else %}
+                <span class="badge bg-danger">Rechazada</span>
+              {% endif %}
+
+              {% if user.is_staff %}
+                <br>
+                <span class="badge bg-{{ s.prioridad|lower }} mt-1">
+                  {{ s.get_prioridad_display }}
+                </span>
+              {% endif %}
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+
+    <!-- Paginación -->
+    {% if is_paginated %}
+      <nav>
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&estado={{ estado_actual }}&tipo={{ tipo_actual }}">Anterior</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+          {% endif %}
+
+          <li class="page-item disabled">
+            <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+          </li>
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&estado={{ estado_actual }}&tipo={{ tipo_actual }}">Siguiente</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
+
+  {% else %}
+    <div class="alert alert-info">
+      <h5>No tienes solicitudes</h5>
+      <p class="mb-2">Aún no has enviado ninguna solicitud al equipo de administración.</p>
+      <a href="{% url 'solicitudes:crear' %}" class="btn btn-sm btn-primary">Crear mi primera solicitud</a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

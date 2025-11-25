@@ -17,16 +17,33 @@ class EventoClinicoList(HistorialReadOrVetStaffMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
+        mascota_pk = self.kwargs.get("mascota_pk")
         user = self.request.user
         perfil = getattr(user, "perfil", None)
+
         qs = EventoClinico.objects.select_related("mascota", "veterinario")
+
+        # Filter by mascota first
+        if mascota_pk:
+            qs = qs.filter(mascota_id=mascota_pk)
+
+        # Apply user permissions
         if perfil and perfil.rol == "VET":
-            return qs  # ver todo (o filtra por veterinario si quieres)
+            pass  # vet can see all
         elif user.is_staff or user.is_superuser:
-            return qs
+            pass  # admin can see all
         else:
             # DUENO: eventos de sus mascotas
-            return qs.filter(mascota__DUENO=user).order_by("-fecha")
+            qs = qs.filter(mascota__DUENO=user)
+
+        return qs.order_by("-fecha")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        mascota_pk = self.kwargs.get("mascota_pk")
+        if mascota_pk:
+            ctx["mascota"] = get_object_or_404(Mascota, pk=mascota_pk)
+        return ctx
 
 class EventoClinicoDetail(HistorialReadOrVetStaffMixin, DetailView):
     model = EventoClinico
@@ -47,17 +64,55 @@ class EventoClinicoDetail(HistorialReadOrVetStaffMixin, DetailView):
 
 class EventoClinicoCreate(VetOrStaffRequiredMixin, CreateView):
     model = EventoClinico
-    form_class = EventoClinicoForm  # ← USAR form_class (no fields)
+    form_class = EventoClinicoForm
     template_name = "historial/form.html"
-    success_url = reverse_lazy("historial:lista")
+
+    def dispatch(self, request, *args, **kwargs):
+        mascota_pk = self.kwargs.get("mascota_pk")
+        self.mascota = get_object_or_404(Mascota, pk=mascota_pk)
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.mascota = self.mascota
+        messages.success(self.request, "Evento clínico agregado correctamente.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse("historial:lista", kwargs={"mascota_pk": self.mascota.pk})
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["mascota"] = self.mascota
+        ctx["accion"] = "Nuevo"
+        return ctx
 
 class EventoClinicoUpdate(VetOrStaffRequiredMixin, UpdateView):
     model = EventoClinico
-    form_class = EventoClinicoForm  # ← USAR form_class (no fields)
+    form_class = EventoClinicoForm
     template_name = "historial/form.html"
-    success_url = reverse_lazy("historial:lista")
+
+    def form_valid(self, form):
+        messages.success(self.request, "Evento clínico actualizado correctamente.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse("historial:lista", kwargs={"mascota_pk": self.object.mascota.pk})
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["mascota"] = self.object.mascota
+        ctx["accion"] = "Editar"
+        return ctx
 
 class EventoClinicoDelete(VetOrStaffRequiredMixin, DeleteView):
     model = EventoClinico
     template_name = "historial/confirm_delete.html"
-    success_url = reverse_lazy("historial:lista")
+
+    def get_success_url(self):
+        messages.success(self.request, "Evento clínico eliminado correctamente.")
+        return reverse("historial:lista", kwargs={"mascota_pk": self.object.mascota.pk})
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["mascota"] = self.object.mascota
+        return ctx

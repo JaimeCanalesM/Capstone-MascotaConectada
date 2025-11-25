@@ -1,61 +1,122 @@
 {% extends "base.html" %}
-{% block titulo %}Evento clínico — {{ mascota.nombre }}{% endblock %}
+{% block titulo %}{{ evento.titulo }} - {{ evento.mascota.nombre }}{% endblock %}
 
 {% block contenido %}
 <div class="container my-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h4 mb-0">Evento clínico — {{ mascota.nombre }}</h1>
-    <div>
-      {% if user.is_authenticated %}
-        {% if user.is_staff %}
-          <a href="{% url 'historial:editar' evento.id %}" class="btn btn-outline-primary btn-sm">Editar</a>
-          <form method="post" action="{% url 'historial:eliminar' evento.id %}" class="d-inline">
-            {% csrf_token %}
-            <button class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Eliminar este evento?');">Eliminar</button>
-          </form>
-        {% elif user.is_superuser %}
-          <a href="{% url 'historial:editar' evento.id %}" class="btn btn-outline-primary btn-sm">Editar</a>
-          <form method="post" action="{% url 'historial:eliminar' evento.id %}" class="d-inline">
-            {% csrf_token %}
-            <button class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Eliminar este evento?');">Eliminar</button>
-          </form>
-        {% else %}
-          {% if user.perfil %}
-            {% if user.perfil.rol == "VET" and user.perfil.vet_estado == "APROBADO" %}
-              <a href="{% url 'historial:editar' evento.id %}" class="btn btn-outline-primary btn-sm">Editar</a>
-          <form method="post" action="{% url 'historial:eliminar' evento.id %}" class="d-inline">
-                {% csrf_token %}
-                <button class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Eliminar este evento?');">Eliminar</button>
-              </form>
-            {% endif %}
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+
+      <!-- Header -->
+      <div class="mb-4">
+        <a href="{% url 'historial:lista' evento.mascota.pk %}" class="btn btn-outline-secondary btn-sm mb-2">
+          Volver al Historial
+        </a>
+        <h1 class="h3 mb-0">{{ evento.titulo }}</h1>
+        <p class="text-muted">Evento de {{ evento.mascota.nombre }}</p>
+      </div>
+
+      <!-- Event Details Card -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Detalles del Evento</h5>
+            <span class="badge bg-primary">{{ evento.get_tipo_display }}</span>
+          </div>
+        </div>
+        <div class="card-body">
+
+          <div class="row mb-3">
+            <div class="col-md-6 mb-3">
+              <label class="text-muted small mb-1">Mascota</label>
+              <p class="mb-0 fw-semibold">
+                <a href="{% url 'mascota:detalle' evento.mascota.pk %}" class="text-decoration-none">
+                  {{ evento.mascota.nombre }}
+                </a>
+              </p>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="text-muted small mb-1">Fecha</label>
+              <p class="mb-0 fw-semibold">{{ evento.fecha|date:"d/m/Y" }}</p>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6 mb-3">
+              <label class="text-muted small mb-1">Veterinario</label>
+              <p class="mb-0 fw-semibold">
+                {% if evento.veterinario %}
+                  {{ evento.veterinario.get_full_name|default:evento.veterinario.username }}
+                {% else %}
+                  <span class="text-muted">No asignado</span>
+                {% endif %}
+              </p>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="text-muted small mb-1">Tipo de Evento</label>
+              <p class="mb-0">
+                <span class="badge bg-primary">{{ evento.get_tipo_display }}</span>
+              </p>
+            </div>
+          </div>
+
+          {% if evento.descripcion %}
+            <hr>
+            <div class="mb-3">
+              <label class="text-muted small mb-1">Descripción</label>
+              <div class="bg-light p-3 rounded">
+                {{ evento.descripcion|linebreaks }}
+              </div>
+            </div>
           {% endif %}
-        {% endif %}
-      {% endif %}
-      <a href="{% url 'historial:lista'%}" class="btn btn-secondary btn-sm">Volver</a>
+
+          {% if evento.archivo %}
+            <hr>
+            <div class="mb-3">
+              <label class="text-muted small mb-1">Archivo Adjunto</label>
+              <p class="mb-0">
+                <a href="{{ evento.archivo.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                  Descargar Archivo
+                </a>
+              </p>
+            </div>
+          {% endif %}
+
+          <hr>
+          <div class="row">
+            <div class="col-md-6 mb-2">
+              <label class="text-muted small mb-1">Registrado</label>
+              <p class="mb-0 small">{{ evento.creado_en|date:"d/m/Y H:i" }}</p>
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="text-muted small mb-1">Última Actualización</label>
+              <p class="mb-0 small">{{ evento.actualizado_en|date:"d/m/Y H:i" }}</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Actions Footer -->
+        <div class="card-footer bg-white">
+          <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'historial:lista' evento.mascota.pk %}" class="btn btn-secondary">
+              Volver al Historial
+            </a>
+
+            {% if user.is_staff or user.is_superuser or user.perfil.rol == 'VET' %}
+              <a href="{% url 'historial:editar' evento.pk %}" class="btn btn-primary">
+                Editar Evento
+              </a>
+              <a href="{% url 'historial:eliminar' evento.pk %}" class="btn btn-danger">
+                Eliminar Evento
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-body">
-      <!-- si el campo es DateField -->
-      <p class="mb-1"><strong>Fecha:</strong> {{ evento.fecha|date:"d/m/Y" }}</p>
-      <!-- si algún día lo cambias a DateTimeField, usa esto: -->
-      {# <p class="mb-1"><strong>Fecha:</strong> {{ evento.fecha|date:"d/m/Y H:i" }}</p> #}
-
-      <p class="mb-1"><strong>Tipo:</strong> {{ evento.get_tipo_display }}</p>
-
-      {% if evento.veterinario %}
-        <p class="mb-1"><strong>Veterinario:</strong> {{ evento.veterinario.username }}</p>
-      {% endif %}
-
-      {% if evento.clinica %}
-        <p class="mb-1"><strong>Clínica:</strong> {{ evento.clinica.nombre }}</p>
-      {% endif %}
-
-      <hr>
-      <p class="mb-0"><strong>Descripción / notas:</strong></p>
-      <p>{{ evento.descripcion|linebreaks }}</p>
-    </div>
-  </div>
 </div>
 {% endblock %}

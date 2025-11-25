@@ -20,6 +20,9 @@ urlpatterns = [
     # Panel de administración propio
     path("panel/", include(("panel.urls", "panel"), namespace="panel")),
 
+    # Solicitudes a administración
+    path("solicitudes/", include(("solicitudes.urls", "solicitudes"), namespace="solicitudes")),
+
     # Auth nativa (login con form custom + resto de endpoints)
     path(
         "accounts/login/",

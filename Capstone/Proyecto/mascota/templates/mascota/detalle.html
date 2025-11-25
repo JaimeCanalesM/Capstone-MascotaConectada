@@ -1,15 +1,210 @@
 {% extends "base.html" %}
-{% block titulo %}Detalle mascota{% endblock %}
+{% block titulo %}{{ mascota.nombre }} - Detalle{% endblock %}
+
 {% block contenido %}
-<h1 class="h4 mb-3">Detalle de mascota</h1>
-<dl class="row">
-  <dt class="col-sm-3">Nombre</dt><dd class="col-sm-9">{{ mascota.nombre }}</dd>
-  <dt class="col-sm-3">Dueño</dt><dd class="col-sm-9">{{ mascota.dueno.username }} ({{ mascota.dueno.email }})</dd>
-  <dt class="col-sm-3">Especie</dt><dd class="col-sm-9">{{ mascota.especie }}</dd>
-  <dt class="col-sm-3">Raza</dt><dd class="col-sm-9">{{ mascota.raza }}</dd>
-  <dt class="col-sm-3">Sexo</dt><dd class="col-sm-9">{{ mascota.sexo }}</dd>
-  <dt class="col-sm-3">Fecha nacimiento</dt><dd class="col-sm-9">{{ mascota.fecha_nacimiento|date:"d-m-Y" }}</dd>
-  <dt class="col-sm-3">Peso</dt><dd class="col-sm-9">{{ mascota.peso }} kg</dd>
-  <dt class="col-sm-3">Notas</dt><dd class="col-sm-9">{{ mascota.notas|linebreaksbr|default:"—" }}</dd>
-</dl>
+<div class="container my-4">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <a href="{% url 'mascota:lista' %}" class="btn btn-outline-secondary mb-2">
+        Volver a la lista
+      </a>
+      <h1 class="h3 mb-0">{{ mascota.nombre }}</h1>
+      <p class="text-muted">{{ mascota.especie }}</p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- Left Column: Photo -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-body p-0">
+          {% if mascota.foto %}
+            <img src="{{ mascota.foto.url }}" alt="{{ mascota.nombre }}" class="img-fluid w-100" style="border-radius: 8px 8px 0 0; max-height: 400px; object-fit: cover;">
+          {% else %}
+            <div class="bg-light d-flex align-items-center justify-content-center" style="height: 300px; border-radius: 8px 8px 0 0;">
+              <div class="text-center">
+                <i class="bi bi-image" style="font-size: 4rem; color: #ccc;"></i>
+                <p class="text-muted mt-2">Sin fotografía</p>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+        <div class="card-body">
+          <h5 class="card-title">{{ mascota.nombre }}</h5>
+          <p class="text-muted mb-0">{{ mascota.especie }}{% if mascota.raza %} - {{ mascota.raza }}{% endif %}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Information -->
+    <div class="col-lg-8">
+
+      <!-- Owner Information -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0">Información del Dueño</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="text-muted small mb-1">Nombre del Dueño</label>
+              <p class="mb-0 fw-semibold">{{ mascota.DUENO.get_full_name|default:mascota.DUENO.username }}</p>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="text-muted small mb-1">Correo Electrónico</label>
+              <p class="mb-0 fw-semibold">{{ mascota.DUENO.email }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pet Information -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0">Información de la Mascota</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="text-muted small mb-1">Nombre</label>
+              <p class="mb-0 fw-semibold">{{ mascota.nombre }}</p>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="text-muted small mb-1">Especie</label>
+              <p class="mb-0 fw-semibold">{{ mascota.especie }}</p>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="text-muted small mb-1">Raza</label>
+              <p class="mb-0 fw-semibold">{{ mascota.raza|default:"No especificada" }}</p>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="text-muted small mb-1">Sexo</label>
+              <p class="mb-0 fw-semibold">{{ mascota.get_sexo_display|default:"No especificado" }}</p>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="text-muted small mb-1">Peso</label>
+              <p class="mb-0 fw-semibold">
+                {% if mascota.peso %}
+                  {{ mascota.peso }} kg
+                {% else %}
+                  <span class="text-muted">No registrado</span>
+                {% endif %}
+              </p>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="text-muted small mb-1">Fecha de Nacimiento</label>
+              <p class="mb-0 fw-semibold">
+                {% if mascota.fecha_nacimiento %}
+                  {{ mascota.fecha_nacimiento|date:"d/m/Y" }}
+                {% else %}
+                  No especificada
+                {% endif %}
+              </p>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="text-muted small mb-1">Edad Aproximada</label>
+              <p class="mb-0 fw-semibold">
+                {% if mascota.fecha_nacimiento %}
+                  {% now "Y" as current_year %}
+                  {{ mascota.fecha_nacimiento|date:"Y"|add:0 }}
+                  {% widthratio current_year 1 1 as age %}
+                  {% widthratio mascota.fecha_nacimiento|date:"Y"|add:0 1 -1 as birth_year_neg %}
+                  {% widthratio age 1 1 as current %}
+                  {% widthratio birth_year_neg 1 -1 as birth %}
+                  Aproximadamente {{ current_year|add:birth_year_neg }} años
+                {% else %}
+                  No disponible
+                {% endif %}
+              </p>
+            </div>
+          </div>
+
+          {% if mascota.notas %}
+            <hr>
+            <div>
+              <label class="text-muted small mb-1">Notas Adicionales</label>
+              <div class="bg-light p-3 rounded">
+                {{ mascota.notas|linebreaks }}
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Metadata -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0">Registro</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6 mb-2">
+              <label class="text-muted small mb-1">Fecha de Registro</label>
+              <p class="mb-0 fw-semibold">{{ mascota.creado|date:"d/m/Y H:i" }}</p>
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="text-muted small mb-1">Última Actualización</label>
+              <p class="mb-0 fw-semibold">{{ mascota.actualizado|date:"d/m/Y H:i" }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Acciones Disponibles</h5>
+          <div class="d-flex gap-2 flex-wrap">
+            {% if user.is_staff or user.is_superuser or user.perfil.rol == 'VET' %}
+              <!-- Admin y Veterinarios pueden ver historial -->
+              <a href="{% url 'historial:lista' mascota.pk %}" class="btn btn-primary">
+                Ver Historial Clínico
+              </a>
+
+              {% if user.perfil.rol == 'VET' or user.is_staff or user.is_superuser %}
+                <a href="{% url 'historial:crear' mascota.pk %}" class="btn btn-success">
+                  Agregar Evento Clínico
+                </a>
+                <a href="{% url 'mascota:editar_medico' mascota.pk %}" class="btn btn-info">
+                  Editar Información Médica
+                </a>
+              {% endif %}
+
+            {% else %}
+              <!-- Dueños pueden ver historial de sus mascotas -->
+              {% if mascota.DUENO == user %}
+                <a href="{% url 'historial:lista' mascota.pk %}" class="btn btn-primary">
+                  Ver Historial Clínico
+                </a>
+                <a href="{% url 'solicitudes:crear' %}" class="btn btn-warning">
+                  Solicitar Cambios
+                </a>
+              {% endif %}
+            {% endif %}
+
+            <a href="{% url 'mascota:lista' %}" class="btn btn-outline-secondary">
+              Volver a la Lista
+            </a>
+          </div>
+
+          {% if not user.is_staff and not user.is_superuser and user.perfil.rol != 'VET' %}
+            <div class="alert alert-info mt-3 mb-0">
+              <strong>Nota:</strong> Para editar o eliminar esta mascota, debes enviar una solicitud al administrador desde el menú "Solicitudes".
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
 {% endblock %}

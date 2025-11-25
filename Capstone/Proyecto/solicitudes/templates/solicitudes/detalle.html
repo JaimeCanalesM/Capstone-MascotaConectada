@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block titulo %}Solicitud #{{ solicitud.id }}{% endblock %}
+
+{% block contenido %}
+<div class="container my-4">
+
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+
+      <!-- Header -->
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center">
+          <a href="{% url 'solicitudes:lista' %}" class="btn btn-outline-secondary me-3">
+            ← Volver
+          </a>
+          <h1 class="h3 mb-0">Solicitud #{{ solicitud.id }}</h1>
+        </div>
+        <div>
+          {% if solicitud.estado == 'PENDIENTE' %}
+            <span class="badge bg-warning fs-6">Pendiente</span>
+          {% elif solicitud.estado == 'EN_REVISION' %}
+            <span class="badge bg-info fs-6">En Revisión</span>
+          {% elif solicitud.estado == 'RESUELTA' %}
+            <span class="badge bg-success fs-6">Resuelta</span>
+          {% else %}
+            <span class="badge bg-danger fs-6">Rechazada</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Main Content Card -->
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">{{ solicitud.asunto }}</h5>
+        </div>
+        <div class="card-body">
+
+          <!-- Metadata -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <p class="mb-2">
+                <strong>Tipo:</strong>
+                <span class="badge bg-secondary">{{ solicitud.get_tipo_display }}</span>
+              </p>
+              <p class="mb-2">
+                <strong>Usuario:</strong> {{ solicitud.usuario.get_full_name|default:solicitud.usuario.username }}
+              </p>
+              {% if solicitud.mascota %}
+                <p class="mb-2">
+                  <strong>Mascota:</strong>
+                  <a href="{% url 'mascota:detalle' solicitud.mascota.pk %}" class="text-decoration-none">
+                    {{ solicitud.mascota.nombre }}
+                  </a>
+                </p>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <p class="mb-2">
+                <strong>Creada:</strong> {{ solicitud.creada_en|date:"d/m/Y H:i" }}
+              </p>
+              <p class="mb-2">
+                <strong>Actualizada:</strong> {{ solicitud.actualizada_en|date:"d/m/Y H:i" }}
+              </p>
+              {% if solicitud.resuelta_en %}
+                <p class="mb-2">
+                  <strong>Resuelta:</strong> {{ solicitud.resuelta_en|date:"d/m/Y H:i" }}
+                </p>
+              {% endif %}
+              {% if user.is_staff %}
+                <p class="mb-2">
+                  <strong>Prioridad:</strong>
+                  {% if solicitud.prioridad == 'BAJA' %}
+                    <span class="badge bg-secondary">Baja</span>
+                  {% elif solicitud.prioridad == 'MEDIA' %}
+                    <span class="badge bg-primary">Media</span>
+                  {% elif solicitud.prioridad == 'ALTA' %}
+                    <span class="badge bg-warning">Alta</span>
+                  {% else %}
+                    <span class="badge bg-danger">Urgente</span>
+                  {% endif %}
+                </p>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="mb-4">
+            <h6 class="text-muted mb-2">Descripción</h6>
+            <div class="bg-light p-3 rounded">
+              {{ solicitud.descripcion|linebreaks }}
+            </div>
+          </div>
+
+          <!-- Archivo adjunto -->
+          {% if solicitud.archivo_adjunto %}
+            <div class="mb-4">
+              <h6 class="text-muted mb-2">Archivo adjunto</h6>
+              <a href="{{ solicitud.archivo_adjunto.url }}" class="btn btn-sm btn-outline-primary" download>
+                Descargar archivo
+              </a>
+            </div>
+          {% endif %}
+
+        </div>
+      </div>
+
+      <!-- Admin Response Card -->
+      {% if solicitud.respuesta_admin %}
+        <div class="card mb-4 border-success">
+          <div class="card-header bg-success text-white">
+            <h6 class="mb-0">Respuesta del Administrador</h6>
+          </div>
+          <div class="card-body">
+            <div class="bg-light p-3 rounded">
+              {{ solicitud.respuesta_admin|linebreaks }}
+            </div>
+          </div>
+        </div>
+      {% elif solicitud.estado == 'EN_REVISION' %}
+        <div class="alert alert-info">
+          <strong>Tu solicitud está siendo revisada</strong>
+          <p class="mb-0 mt-2">El equipo de administración está trabajando en tu solicitud. Recibirás una respuesta pronto.</p>
+        </div>
+      {% elif solicitud.estado == 'PENDIENTE' %}
+        <div class="alert alert-warning">
+          <strong>Tu solicitud está pendiente</strong>
+          <p class="mb-0 mt-2">Tu solicitud ha sido recibida y será revisada por el equipo de administración.</p>
+        </div>
+      {% endif %}
+
+      <!-- Admin Actions (only for staff) -->
+      {% if user.is_staff %}
+        <div class="card border-primary">
+          <div class="card-header bg-primary text-white">
+            <h6 class="mb-0">Acciones de Administrador</h6>
+          </div>
+          <div class="card-body">
+            <p class="mb-3">Gestiona esta solicitud desde el <a href="/admin/solicitudes/solicitud/{{ solicitud.pk }}/change/" class="text-primary">panel de administración de Django</a> para:</p>
+            <ul class="mb-0">
+              <li>Cambiar el estado (Pendiente, En Revisión, Resuelta, Rechazada)</li>
+              <li>Modificar la prioridad</li>
+              <li>Agregar o editar la respuesta</li>
+              <li>Ver el historial de cambios</li>
+            </ul>
+            <div class="mt-3">
+              <a href="/admin/solicitudes/solicitud/{{ solicitud.pk }}/change/" class="btn btn-primary">
+                Ir al Panel Admin
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

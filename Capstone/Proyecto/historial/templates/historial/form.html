@@ -1,61 +1,133 @@
 {% extends "base.html" %}
-{% block titulo %}{% if object %}Editar{% else %}Nueva{% endif %} entrada{% if mascota %} — {{ mascota.nombre }}{% endif %}{% endblock %}
+{% block titulo %}{{ accion }} Evento Clínico{% if mascota %} - {{ mascota.nombre }}{% endif %}{% endblock %}
+
 {% block contenido %}
 <div class="container my-4">
-  <h1 class="h4 mb-3">
-    {% if object %}Editar{% else %}Nueva{% endif %} entrada
-    {% if mascota %} — {{ mascota.nombre }}{% endif %}
-  </h1>
 
-  <form method="post" enctype="multipart/form-data" class="card shadow-sm">
-    <div class="card-body">
-      {% csrf_token %}
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
 
-      <div class="row g-3">
-        <div class="col-md-4">
-          <label class="form-label">Tipo</label>
-          {{ form.tipo }}
-          {{ form.tipo.errors }}
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Fecha</label>
-          {{ form.fecha }}
-          {{ form.fecha.errors }}
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Veterinario (opcional)</label>
-          {{ form.veterinario }}
-          {{ form.veterinario.errors }}
-        </div>
+      <!-- Header -->
+      <div class="mb-4">
+        {% if mascota %}
+          <a href="{% url 'historial:lista' mascota.id %}" class="btn btn-outline-secondary btn-sm mb-2">
+            Volver al Historial
+          </a>
+        {% endif %}
+        <h1 class="h3 mb-0">{{ accion }} Evento Clínico</h1>
+        {% if mascota %}
+          <p class="text-muted">Para {{ mascota.nombre }}</p>
+        {% endif %}
+      </div>
 
-        <div class="col-12">
-          <label class="form-label">Título</label>
-          {{ form.titulo }}
-          {{ form.titulo.errors }}
-        </div>
+      <!-- Form Card -->
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
 
-        <div class="col-12">
-          <label class="form-label">Descripción</label>
-          {{ form.descripcion }}
-          {{ form.descripcion.errors }}
-        </div>
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+              </div>
+            {% endif %}
 
-        <div class="col-12">
-          <label class="form-label">Adjunto (opcional)</label>
-          {{ form.archivo }}
-          {{ form.archivo.errors }}
+            <div class="row g-3">
+
+              <!-- Tipo -->
+              <div class="col-md-4">
+                <label for="{{ form.tipo.id_for_label }}" class="form-label">
+                  Tipo de Evento <span class="text-danger">*</span>
+                </label>
+                {{ form.tipo }}
+                {% if form.tipo.errors %}
+                  <div class="text-danger small">{{ form.tipo.errors }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Fecha -->
+              <div class="col-md-4">
+                <label for="{{ form.fecha.id_for_label }}" class="form-label">
+                  Fecha <span class="text-danger">*</span>
+                </label>
+                {{ form.fecha }}
+                {% if form.fecha.errors %}
+                  <div class="text-danger small">{{ form.fecha.errors }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Veterinario -->
+              <div class="col-md-4">
+                <label for="{{ form.veterinario.id_for_label }}" class="form-label">
+                  Veterinario
+                </label>
+                {{ form.veterinario }}
+                {% if form.veterinario.errors %}
+                  <div class="text-danger small">{{ form.veterinario.errors }}</div>
+                {% endif %}
+                <small class="text-muted">Opcional</small>
+              </div>
+
+              <!-- Título -->
+              <div class="col-12">
+                <label for="{{ form.titulo.id_for_label }}" class="form-label">
+                  Título <span class="text-danger">*</span>
+                </label>
+                {{ form.titulo }}
+                {% if form.titulo.errors %}
+                  <div class="text-danger small">{{ form.titulo.errors }}</div>
+                {% endif %}
+                <small class="text-muted">Ej: "Vacuna Rabia", "Control anual", "Cirugía de esterilización"</small>
+              </div>
+
+              <!-- Descripción -->
+              <div class="col-12">
+                <label for="{{ form.descripcion.id_for_label }}" class="form-label">
+                  Descripción
+                </label>
+                {{ form.descripcion }}
+                {% if form.descripcion.errors %}
+                  <div class="text-danger small">{{ form.descripcion.errors }}</div>
+                {% endif %}
+                <small class="text-muted">Detalles adicionales sobre el evento</small>
+              </div>
+
+              <!-- Archivo Adjunto -->
+              <div class="col-12">
+                <label for="{{ form.archivo.id_for_label }}" class="form-label">
+                  Archivo Adjunto
+                </label>
+                {{ form.archivo }}
+                {% if form.archivo.errors %}
+                  <div class="text-danger small">{{ form.archivo.errors }}</div>
+                {% endif %}
+                <small class="text-muted">Documentos, imágenes, radiografías, etc. (Opcional)</small>
+              </div>
+
+            </div>
+
+            <!-- Buttons -->
+            <div class="d-flex gap-2 mt-4">
+              <button type="submit" class="btn btn-primary">
+                Guardar Evento
+              </button>
+              {% if mascota %}
+                <a href="{% url 'historial:lista' mascota.id %}" class="btn btn-secondary">
+                  Cancelar
+                </a>
+              {% else %}
+                <a href="{% url 'mascota:lista' %}" class="btn btn-secondary">
+                  Cancelar
+                </a>
+              {% endif %}
+            </div>
+
+          </form>
         </div>
       </div>
-    </div>
 
-    <div class="card-footer d-flex justify-content-between">
-      {% if mascota %}
-        <a href="{% url 'historial:lista' mascota.id %}" class="btn btn-secondary">Cancelar</a>
-      {% else %}
-        <a href="{% url 'mascota:lista' %}" class="btn btn-secondary">Cancelar</a>
-      {% endif %}
-      <button class="btn btn-primary" type="submit">Guardar</button>
     </div>
-  </form>
+  </div>
+
 </div>
 {% endblock %}
