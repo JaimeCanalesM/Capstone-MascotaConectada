@@ -11,19 +11,27 @@
         <div class="card-body p-4">
           <div class="row align-items-center">
             <div class="col-auto">
-              <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
-                   style="width: 80px; height: 80px; font-size: 2rem; font-weight: bold;">
-                {{ user.first_name|slice:":1"|upper|default:"U" }}{{ user.last_name|slice:":1"|upper|default:"" }}
-              </div>
+              {% if user.perfil.foto_perfil %}
+                <img src="{{ user.perfil.foto_perfil.url }}"
+                     alt="Foto de perfil de {{ user.get_full_name|default:user.username }}"
+                     class="rounded-circle border border-3 border-primary shadow-sm"
+                     style="width: 100px; height: 100px; object-fit: cover;">
+              {% else %}
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                     style="width: 100px; height: 100px; font-size: 2.5rem; font-weight: bold;">
+                  {{ user.first_name|slice:":1"|upper|default:"U" }}{{ user.last_name|slice:":1"|upper|default:"" }}
+                </div>
+              {% endif %}
             </div>
             <div class="col">
               <h2 class="mb-1">{{ user.get_full_name|default:user.username }}</h2>
               <p class="text-muted mb-2">{{ user.email }}</p>
               {% if user.perfil %}
-                <div class="d-flex gap-2 align-items-center">
-                  <span class="badge bg-primary">{{ user.perfil.get_rol_display }}</span>
+                <div class="d-flex gap-2 align-items-center flex-wrap">
                   {% if user.is_staff or user.is_superuser %}
                     <span class="badge bg-danger">Administrador</span>
+                  {% else %}
+                    <span class="badge bg-primary">{{ user.perfil.get_rol_display }}</span>
                   {% endif %}
                   {% if user.perfil.rol == "VET" %}
                     {% if user.perfil.vet_estado == "APROBADO" %}
@@ -37,6 +45,11 @@
                 </div>
               {% endif %}
             </div>
+            <div class="col-auto">
+              <a href="{% url 'cuentas:editar_perfil' %}" class="btn btn-primary">
+                <i class="bi bi-pencil-square"></i> Editar Perfil
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -46,7 +59,34 @@
   <!-- Statistics Section -->
   {% if estadisticas %}
     <div class="row g-3 mb-4">
-      {% if user.perfil.rol == "DUENO" %}
+      {% if user.is_staff or user.is_superuser %}
+        <!-- Admin Statistics -->
+        <div class="col-md-4">
+          <div class="card border-primary h-100">
+            <div class="card-body text-center">
+              <h3 class="text-primary mb-2">{{ estadisticas.total_usuarios }}</h3>
+              <p class="text-muted mb-0">Total Usuarios</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-success h-100">
+            <div class="card-body text-center">
+              <h3 class="text-success mb-2">{{ estadisticas.total_mascotas }}</h3>
+              <p class="text-muted mb-0">Total Mascotas</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-warning h-100">
+            <div class="card-body text-center">
+              <h3 class="text-warning mb-2">{{ estadisticas.solicitudes_pendientes }}</h3>
+              <p class="text-muted mb-0">Solicitudes Pendientes</p>
+            </div>
+          </div>
+        </div>
+
+      {% elif user.perfil.rol == "DUENO" %}
         <!-- Dueño Statistics -->
         <div class="col-md-3">
           <div class="card border-primary h-100">
@@ -104,33 +144,6 @@
             <div class="card-body text-center">
               <h3 class="text-primary mb-2">{{ estadisticas.mascotas_atendidas }}</h3>
               <p class="text-muted mb-0">Mascotas Atendidas</p>
-            </div>
-          </div>
-        </div>
-
-      {% elif user.is_staff or user.is_superuser %}
-        <!-- Admin Statistics -->
-        <div class="col-md-4">
-          <div class="card border-primary h-100">
-            <div class="card-body text-center">
-              <h3 class="text-primary mb-2">{{ estadisticas.total_usuarios }}</h3>
-              <p class="text-muted mb-0">Total Usuarios</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card border-success h-100">
-            <div class="card-body text-center">
-              <h3 class="text-success mb-2">{{ estadisticas.total_mascotas }}</h3>
-              <p class="text-muted mb-0">Total Mascotas</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card border-warning h-100">
-            <div class="card-body text-center">
-              <h3 class="text-warning mb-2">{{ estadisticas.solicitudes_pendientes }}</h3>
-              <p class="text-muted mb-0">Solicitudes Pendientes</p>
             </div>
           </div>
         </div>
@@ -257,7 +270,7 @@
                 </a>
               {% endif %}
 
-              {% if user.perfil.rol == "DUENO" %}
+              {% if user.perfil.rol == "DUENO" and not user.is_staff and not user.is_superuser %}
                 <a href="{% url 'mascota:lista' %}" class="btn btn-primary">
                   Ver Mis Mascotas
                 </a>
@@ -271,10 +284,6 @@
                   Nueva Solicitud
                 </a>
               {% endif %}
-
-              <a href="{% url 'password_change' %}" class="btn btn-outline-secondary">
-                Cambiar Contraseña
-              </a>
             </div>
           </div>
         </div>

@@ -50,46 +50,256 @@
   </div>
 
   <!-- ========================= -->
-  <!--  ANÁLISIS PREDICTIVO     -->
+  <!--  MINERÍA DE DATOS        -->
   <!-- ========================= -->
   <div class="card mb-4 shadow-sm">
     <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-      <h5 class="mb-0">Análisis Predictivo & Estadísticas Avanzadas</h5>
+      <h5 class="mb-0"><i class="bi bi-graph-up-arrow"></i> Minería de Datos & Análisis Predictivo</h5>
+    </div>
+    <div class="card-body">
+
+      <!-- ANÁLISIS DE COHORTES -->
+      <div class="mb-4">
+        <h6 class="text-primary mb-3"><i class="bi bi-calendar3-range"></i> Análisis de Cohortes - Retención por Mes de Registro</h6>
+        <div class="row g-3">
+          {% for cohorte in cohortes_retencion %}
+            <div class="col-md-4">
+              <div class="p-3 border rounded bg-light">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <strong>{{ cohorte.mes }}</strong>
+                  <span class="badge bg-primary">{{ cohorte.retencion }}% retención</span>
+                </div>
+                <small class="text-muted d-block">
+                  Registrados: <strong>{{ cohorte.registrados }}</strong> |
+                  Activos: <strong>{{ cohorte.activos }}</strong>
+                </small>
+                <div class="progress mt-2" style="height: 6px;">
+                  <div class="progress-bar" role="progressbar"
+                       style="width: {{ cohorte.retencion }}%; background-color: {% if cohorte.retencion >= 50 %}#28a745{% elif cohorte.retencion >= 30 %}#ffc107{% else %}#dc3545{% endif %}">
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% empty %}
+            <div class="col-12">
+              <p class="text-muted mb-0">No hay datos suficientes para análisis de cohortes</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- SEGMENTACIÓN RFM -->
+      <div class="mb-4">
+        <h6 class="text-success mb-3"><i class="bi bi-people-fill"></i> Segmentación RFM (Recencia, Frecuencia, Actividad)</h6>
+        <div class="row g-3">
+          {% for segmento, cantidad in segmentacion_rfm.items %}
+            <div class="col-md-4">
+              <div class="p-3 rounded" style="background: linear-gradient(135deg,
+                {% if 'VIP' in segmento %}#ffd700{% elif 'Activo' in segmento %}#28a745{% elif 'Riesgo' in segmento %}#ff6b6b{% elif 'Inactivo' in segmento %}#6c757d{% else %}#17a2b8{% endif %} 0%,
+                {% if 'VIP' in segmento %}#ffed4e{% elif 'Activo' in segmento %}#5ec576{% elif 'Riesgo' in segmento %}#ff8787{% elif 'Inactivo' in segmento %}#8d95a1{% else %}#4ec5db{% endif %} 100%); color: white;">
+                <h4 class="mb-1 fw-bold">{{ cantidad }}</h4>
+                <small class="d-block">{{ segmento }}</small>
+                {% if total_usuarios_segmentados > 0 %}
+                  <small class="d-block opacity-75">{{ cantidad|floatformat:0|default:"0" }} / {{ total_usuarios_segmentados }} ({% widthratio cantidad total_usuarios_segmentados 100 %}%)</small>
+                {% endif %}
+              </div>
+            </div>
+          {% empty %}
+            <div class="col-12">
+              <p class="text-muted mb-0">No hay usuarios segmentados</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- CLUSTERING DE COMPORTAMIENTO -->
+      <div class="mb-4">
+        <h6 class="text-warning mb-3"><i class="bi bi-diagram-3-fill"></i> Clustering de Comportamiento</h6>
+        <div class="row g-3">
+          <div class="col-md-3">
+            <div class="p-3 border border-warning rounded text-center">
+              <h3 class="mb-1 fw-bold text-warning">{{ clusters.vip }}</h3>
+              <small class="text-muted">VIP<br>(Frecuencia Alta)</small>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-3 border border-info rounded text-center">
+              <h3 class="mb-1 fw-bold text-info">{{ clusters.ocasional }}</h3>
+              <small class="text-muted">Ocasionales<br>(Uso Esporádico)</small>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-3 border border-danger rounded text-center">
+              <h3 class="mb-1 fw-bold text-danger">{{ clusters.riesgo }}</h3>
+              <small class="text-muted">En Riesgo<br>(Abandonando)</small>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-3 border border-secondary rounded text-center">
+              <h3 class="mb-1 fw-bold text-secondary">{{ clusters.nuevos }}</h3>
+              <small class="text-muted">Nuevos<br>(Sin Actividad)</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PATRONES TEMPORALES -->
+      <div class="mb-4">
+        <h6 class="text-info mb-3"><i class="bi bi-clock-history"></i> Patrones Temporales</h6>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="p-3 border rounded">
+              <strong class="d-block mb-2">Horarios Pico:</strong>
+              {% for horario in horarios_pico %}
+                <span class="badge bg-info me-2">{{ horario.hora }} ({{ horario.total }} citas)</span>
+              {% empty %}
+                <span class="text-muted">Sin datos</span>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 border rounded">
+              <strong class="d-block mb-2">Día Más Activo:</strong>
+              {% for patron in patrones_dia_semana %}
+                {% if forloop.first or patron.total == max_citas_dia %}
+                  <span class="badge bg-success me-2">{{ patron.dia }} ({{ patron.total }} citas)</span>
+                {% endif %}
+              {% empty %}
+                <span class="text-muted">Sin datos</span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MÉTRICAS DE CONVERSIÓN -->
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="p-3 bg-primary bg-opacity-10 border border-primary rounded">
+            <h6 class="text-primary mb-2">Tasa de Conversión</h6>
+            <h3 class="mb-1 fw-bold text-primary">{{ tasa_conversion_citas }}%</h3>
+            <small class="text-muted">Usuarios que agendaron al menos 1 cita</small>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="p-3 bg-success bg-opacity-10 border border-success rounded">
+            <h6 class="text-success mb-2">Valor Promedio del Usuario</h6>
+            <h3 class="mb-1 fw-bold text-success">{{ citas_promedio_usuario_activo }}</h3>
+            <small class="text-muted">Citas promedio por usuario activo</small>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!--  ESTADÍSTICAS AVANZADAS  -->
+  <!-- ========================= -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header bg-dark text-white">
+      <h5 class="mb-0">📊 Estadísticas Avanzadas de Comportamiento</h5>
     </div>
     <div class="card-body">
       <div class="row g-3">
+
+        <!-- Probabilidad Condicional -->
+        <div class="col-md-3">
+          <div class="p-3 border rounded h-100">
+            <h6 class="text-primary mb-2">
+              <i class="bi bi-calendar-check"></i> Prob. Cita Mensual
+            </h6>
+            <h3 class="mb-1 fw-bold">{{ prob_cita_mensual_dado_mascota }}%</h3>
+            <small class="text-muted">
+              Usuarios con mascota que agendan citas en el mes
+            </small>
+            <div class="progress mt-2" style="height: 6px;">
+              <div class="progress-bar bg-primary" style="width: {{ prob_cita_mensual_dado_mascota }}%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tasa de Retención -->
+        <div class="col-md-3">
+          <div class="p-3 border rounded h-100">
+            <h6 class="text-success mb-2">
+              <i class="bi bi-people"></i> Tasa de Retención
+            </h6>
+            <h3 class="mb-1 fw-bold">{{ tasa_retencion_mensual }}%</h3>
+            <small class="text-muted">
+              Usuarios antiguos activos en el último mes
+            </small>
+            <div class="progress mt-2" style="height: 6px;">
+              <div class="progress-bar bg-success" style="width: {{ tasa_retencion_mensual }}%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Engagement -->
+        <div class="col-md-3">
+          <div class="p-3 border rounded h-100">
+            <h6 class="text-warning mb-2">
+              <i class="bi bi-graph-up"></i> Engagement Total
+            </h6>
+            <h3 class="mb-1 fw-bold">{{ tasa_engagement }}%</h3>
+            <small class="text-muted">
+              Usuarios con al menos 1 acción
+            </small>
+            <div class="progress mt-2" style="height: 6px;">
+              <div class="progress-bar bg-warning" style="width: {{ tasa_engagement }}%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tasa Finalización Citas -->
+        <div class="col-md-3">
+          <div class="p-3 border rounded h-100">
+            <h6 class="text-info mb-2">
+              <i class="bi bi-check-circle"></i> Finalización Citas
+            </h6>
+            <h3 class="mb-1 fw-bold">{{ tasa_finalizacion_citas }}%</h3>
+            <small class="text-muted">
+              Citas completadas vs total
+            </small>
+            <div class="progress mt-2" style="height: 6px;">
+              <div class="progress-bar bg-info" style="width: {{ tasa_finalizacion_citas }}%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actividad Dueños -->
         <div class="col-md-4">
-          <div class="p-3 bg-light rounded">
-            <h6 class="text-muted mb-2">Probabilidad de Registro de Mascota</h6>
-            <div class="d-flex align-items-center justify-content-between">
-              <h2 class="mb-0 fw-bold text-primary">{{ probabilidad_registro_mascota }}%</h2>
-              <small class="text-muted">
-                {{ usuarios_con_mascota }}/{{ total_usuarios }} usuarios
-              </small>
-            </div>
-            <div class="progress mt-2" style="height: 8px;">
-              <div class="progress-bar bg-primary" role="progressbar"
-                   style="width: {{ probabilidad_registro_mascota }}%"></div>
-            </div>
-            <small class="text-muted mt-1 d-block">
-              De cada 100 usuarios, {{ probabilidad_registro_mascota|floatformat:0 }} registran al menos una mascota
+          <div class="p-3 border rounded h-100 bg-light">
+            <h6 class="text-secondary mb-2">Actividad Dueños</h6>
+            <h4 class="mb-1 fw-bold text-primary">{{ prob_dueno_con_citas }}%</h4>
+            <small class="text-muted">
+              Dueños con al menos 1 cita programada
             </small>
           </div>
         </div>
+
+        <!-- Actividad Veterinarios -->
         <div class="col-md-4">
-          <div class="p-3 bg-light rounded">
-            <h6 class="text-muted mb-2">Promedio Mascotas/Usuario</h6>
-            <h2 class="mb-0 fw-bold text-success">{{ promedio_mascotas }}</h2>
-            <small class="text-muted">Cada usuario tiene en promedio {{ promedio_mascotas }} mascotas</small>
+          <div class="p-3 border rounded h-100 bg-light">
+            <h6 class="text-secondary mb-2">Actividad Veterinarios</h6>
+            <h4 class="mb-1 fw-bold text-success">{{ prob_vet_con_citas_atendidas }}%</h4>
+            <small class="text-muted">
+              Veterinarios aprobados con citas atendidas
+            </small>
           </div>
         </div>
+
+        <!-- Tasa Aprobación Vets -->
         <div class="col-md-4">
-          <div class="p-3 bg-light rounded">
-            <h6 class="text-muted mb-2">Promedio Citas/Mascota</h6>
-            <h2 class="mb-0 fw-bold text-warning">{{ promedio_citas_por_mascota }}</h2>
-            <small class="text-muted">Cada mascota tiene {{ promedio_citas_por_mascota }} citas en promedio</small>
+          <div class="p-3 border rounded h-100 bg-light">
+            <h6 class="text-secondary mb-2">Conversión Veterinarios</h6>
+            <h4 class="mb-1 fw-bold text-danger">{{ tasa_aprobacion_veterinarios }}%</h4>
+            <small class="text-muted">
+              Solicitudes aprobadas vs procesadas
+            </small>
           </div>
         </div>
+
       </div>
     </div>
   </div>

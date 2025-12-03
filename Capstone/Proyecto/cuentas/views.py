@@ -6,7 +6,7 @@ from django.urls import reverse_lazy
 from django.views.generic import FormView, ListView
 
 from cuentas.mixins import RolRequiredMixin
-from .forms import UnifiedSignupForm
+from .forms import UnifiedSignupForm, EditarPerfilForm
 from .models import Perfil
 from citas.models import Cita
 
@@ -128,6 +128,46 @@ def perfil(request):
         "estadisticas": estadisticas,
     }
     return render(request, "cuentas/perfil.html", contexto)
+
+
+# ---------------------------------------------------------------------
+# EDITAR PERFIL
+# ---------------------------------------------------------------------
+@login_required
+def editar_perfil(request):
+    from django.contrib.auth import update_session_auth_hash
+
+    perfil = getattr(request.user, "perfil", None)
+
+    if request.method == "POST":
+        form = EditarPerfilForm(
+            request.POST,
+            request.FILES,
+            instance=request.user,
+            perfil=perfil
+        )
+        if form.is_valid():
+            user = form.save()
+
+            # Si se cambió la contraseña, mantener la sesión activa
+            if form.cleaned_data.get('new_password'):
+                update_session_auth_hash(request, user)
+                messages.success(request, "Perfil y contraseña actualizados correctamente.")
+            else:
+                messages.success(request, "Perfil actualizado correctamente.")
+
+            return redirect("cuentas:perfil")
+    else:
+        form = EditarPerfilForm(
+            instance=request.user,
+            perfil=perfil
+        )
+
+    contexto = {
+        "form": form,
+        "perfil": perfil,
+    }
+    return render(request, "cuentas/editar_perfil.html", contexto)
 
 
 # ---------------------------------------------------------------------

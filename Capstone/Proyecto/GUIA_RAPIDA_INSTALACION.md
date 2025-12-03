@@ -8,6 +8,7 @@
 
 ```bash
 cd Capstone/Proyecto
+.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 

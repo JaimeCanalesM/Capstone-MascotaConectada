@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from .models import Perfil
 from .validators import validar_rut_chileno, formatear_rut
 
@@ -43,15 +44,17 @@ class UnifiedSignupForm(UserCreationForm):
     )
 
     vet_registro = forms.CharField(
-        label="Registro profesional",
+        label="RUN (Rol Único Nacional del veterinario)",
         max_length=100,
-        required=False
+        required=False,
+        help_text="Ingrese su RUN profesional"
     )
 
     vet_clinica = forms.CharField(
-        label="Clínica/centro",
+        label="Clínica/Centro (Opcional)",
         max_length=200,
-        required=False
+        required=False,
+        help_text="Indique la clínica o centro donde ejerce, si aplica"
     )
 
     # Archivo obligatorio si es veterinario
@@ -105,13 +108,11 @@ class UnifiedSignupForm(UserCreationForm):
                 except ValidationError as e:
                     self.add_error("vet_rut", e.message)
 
-            # Registro profesional
+            # RUN (Registro profesional)
             if not reg:
-                self.add_error("vet_registro", "Debes ingresar tu número de registro profesional.")
+                self.add_error("vet_registro", "Debes ingresar tu RUN profesional.")
 
-            # Clínica
-            if not clinica:
-                self.add_error("vet_clinica", "Debes indicar la clínica o centro donde ejerces.")
+            # Clínica (opcional, no se valida)
 
             # Archivo obligatorio (título de médico veterinario)
             if not archivo:
@@ -160,5 +161,138 @@ class UnifiedSignupForm(UserCreationForm):
                 perfil.licencia_medica = None
 
             perfil.save()
+
+        return user
+
+
+# FORMULARIO DE EDICIÓN DE PERFIL
+class EditarPerfilForm(forms.ModelForm):
+    """Formulario para editar información personal y foto de perfil"""
+
+    first_name = forms.CharField(
+        label="Nombre",
+        max_length=30,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+
+    last_name = forms.CharField(
+        label="Apellido",
+        max_length=30,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+
+    email = forms.EmailField(
+        label="Correo Electrónico",
+        required=True,
+        widget=forms.EmailInput(attrs={'class': 'form-control'})
+    )
+
+    foto_perfil = forms.ImageField(
+        label="Foto de Perfil",
+        required=False,
+        help_text="Sube una imagen JPG, JPEG o PNG (máx. 2MB)",
+        widget=forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'})
+    )
+
+    eliminar_foto = forms.BooleanField(
+        label="Eliminar foto actual",
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+
+    # Campos de contraseña opcionales
+    current_password = forms.CharField(
+        label="Contraseña Actual",
+        required=False,
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Solo si deseas cambiar la contraseña'}),
+        help_text="Ingresa tu contraseña actual solo si deseas cambiarla"
+    )
+
+    new_password = forms.CharField(
+        label="Nueva Contraseña",
+        required=False,
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        help_text="Mínimo 8 caracteres"
+    )
+
+    confirm_password = forms.CharField(
+        label="Confirmar Nueva Contraseña",
+        required=False,
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+
+    def __init__(self, *args, **kwargs):
+        self.perfil = kwargs.pop('perfil', None)
+        super().__init__(*args, **kwargs)
+
+    def clean_foto_perfil(self):
+        foto = self.cleaned_data.get('foto_perfil')
+        if foto:
+            # Validar tipo de archivo
+            ext = foto.name.lower().split('.')[-1]
+            if ext not in ['jpg', 'jpeg', 'png']:
+                raise forms.ValidationError('Solo se permiten imágenes JPG, JPEG o PNG')
+
+            # Validar tamaño (máx 2MB)
+            if foto.size > 2 * 1024 * 1024:
+                raise forms.ValidationError('La imagen no debe exceder 2MB')
+
+        return foto
+
+    def clean(self):
+        cleaned_data = super().clean()
+        current_password = cleaned_data.get('current_password')
+        new_password = cleaned_data.get('new_password')
+        confirm_password = cleaned_data.get('confirm_password')
+
+        # Si se ingresó algún campo de contraseña, validar todo
+        if current_password or new_password or confirm_password:
+            # Todos los campos son requeridos
+            if not current_password:
+                self.add_error('current_password', 'Debes ingresar tu contraseña actual')
+            elif not self.instance.check_password(current_password):
+                self.add_error('current_password', 'La contraseña actual es incorrecta')
+
+            if not new_password:
+                self.add_error('new_password', 'Debes ingresar una nueva contraseña')
+            elif len(new_password) < 8:
+                self.add_error('new_password', 'La contraseña debe tener al menos 8 caracteres')
+
+            if not confirm_password:
+                self.add_error('confirm_password', 'Debes confirmar la nueva contraseña')
+            elif new_password and confirm_password and new_password != confirm_password:
+                self.add_error('confirm_password', 'Las contraseñas no coinciden')
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=commit)
+
+        if commit:
+            # Cambiar contraseña si se proporcionó
+            new_password = self.cleaned_data.get('new_password')
+            if new_password:
+                user.set_password(new_password)
+                user.save()
+
+            # Actualizar foto de perfil
+            if self.perfil:
+                if self.cleaned_data.get('eliminar_foto'):
+                    if self.perfil.foto_perfil:
+                        self.perfil.foto_perfil.delete(save=False)
+                    self.perfil.foto_perfil = None
+                elif self.cleaned_data.get('foto_perfil'):
+                    # Eliminar foto anterior si existe
+                    if self.perfil.foto_perfil:
+                        self.perfil.foto_perfil.delete(save=False)
+                    self.perfil.foto_perfil = self.cleaned_data['foto_perfil']
+
+                self.perfil.save()
 
         return user

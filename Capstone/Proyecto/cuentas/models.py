@@ -40,6 +40,13 @@ class Perfil(models.Model):
         default=ROL_DUENO
     )
 
+    foto_perfil = models.ImageField(
+        upload_to="perfiles/",
+        blank=True,
+        null=True,
+        help_text="Foto de perfil del usuario"
+    )
+
     # --- CAMPOS EXCLUSIVOS PARA VETERINARIOS ---
     vet_estado = models.CharField(
         max_length=10,
@@ -58,13 +65,13 @@ class Perfil(models.Model):
     vet_registro = models.CharField(
         max_length=100,
         blank=True,
-        help_text="Número de registro profesional (SEREMI/colegiatura, etc.)"
+        help_text="RUN (Rol Único Nacional del veterinario)"
     )
 
     vet_clinica = models.CharField(
         max_length=200,
         blank=True,
-        help_text="Clínica o centro donde ejerce"
+        help_text="Clínica o centro donde ejerce (opcional)"
     )
 
     licencia_medica = models.FileField(
