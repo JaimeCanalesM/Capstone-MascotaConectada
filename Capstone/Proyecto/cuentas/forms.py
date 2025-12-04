@@ -134,18 +134,15 @@ class UnifiedSignupForm(UserCreationForm):
         user = super().save(commit=commit)
 
         if commit:
-            perfil = getattr(user, "perfil", None)
-            if not perfil:
-                perfil = Perfil.objects.create(user=user)
+            # Obtener o crear perfil
+            perfil, created = Perfil.objects.get_or_create(user=user)
 
             if self.cleaned_data.get("is_veterinario"):
-
                 perfil.rol = Perfil.ROL_VET
                 perfil.vet_estado = Perfil.VET_PENDIENTE
-
-                perfil.vet_rut = self.cleaned_data.get("vet_rut", "")
-                perfil.vet_registro = self.cleaned_data.get("vet_registro", "")
-                perfil.vet_clinica = self.cleaned_data.get("vet_clinica", "")
+                perfil.vet_rut = self.cleaned_data.get("vet_rut", "").strip()
+                perfil.vet_registro = self.cleaned_data.get("vet_registro", "").strip()
+                perfil.vet_clinica = self.cleaned_data.get("vet_clinica", "").strip()
 
                 # Guardar archivo del título de médico veterinario
                 archivo = self.cleaned_data.get("licencia_medica")

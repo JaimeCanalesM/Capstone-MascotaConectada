@@ -6,6 +6,7 @@ from .views import (
     VetsPendientesListView,
     SolicitudesListView,
     SolicitudDetailView,
+    SolicitudGestionView,
     aprobar_vet,
     rechazar_vet,
 )
@@ -19,4 +20,5 @@ urlpatterns = [
     path("vets/<int:perfil_id>/rechazar/", views.rechazar_vet, name="rechazar_vet"),
     path("solicitudes/", SolicitudesListView.as_view(), name="solicitudes_lista"),
     path("solicitudes/<int:pk>/", SolicitudDetailView.as_view(), name="solicitud_detalle"),
+    path("solicitudes/<int:pk>/gestionar/", SolicitudGestionView.as_view(), name="solicitud_gestionar"),
 ]

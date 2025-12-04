@@ -165,8 +165,8 @@
                       <a href="{% url 'panel:solicitud_detalle' s.pk %}" class="btn btn-outline-primary" title="Ver detalles">
                         Ver
                       </a>
-                      <a href="/admin/solicitudes/solicitud/{{ s.pk }}/change/" class="btn btn-outline-secondary" title="Gestionar en Django Admin">
-                        Gestionar
+                      <a href="{% url 'panel:solicitud_gestionar' s.pk %}" class="btn btn-primary" title="Gestionar solicitud">
+                        <i class="bi bi-gear"></i> Gestionar
                       </a>
                     </div>
                   </td>

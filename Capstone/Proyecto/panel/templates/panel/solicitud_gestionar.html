@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block titulo %}Gestionar Solicitud #{{ solicitud.id }}{% endblock %}
+
+{% block contenido %}
+<div class="container my-4">
+  
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'panel:dashboard' %}">Panel</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'panel:solicitudes_lista' %}">Solicitudes</a></li>
+      <li class="breadcrumb-item active">Solicitud #{{ solicitud.id }}</li>
+    </ol>
+  </nav>
+
+  <div class="row">
+    <!-- Columna principal: Info de la solicitud -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">{{ solicitud.asunto }}</h5>
+          <span class="badge bg-light text-dark">#{{ solicitud.id }}</span>
+        </div>
+        <div class="card-body">
+          
+          <!-- Metadata -->
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <p class="mb-2">
+                <strong>Usuario:</strong> {{ solicitud.usuario.get_full_name|default:solicitud.usuario.username }}
+                <br><small class="text-muted">{{ solicitud.usuario.email }}</small>
+              </p>
+              <p class="mb-2">
+                <strong>Tipo:</strong> 
+                <span class="badge bg-secondary">{{ solicitud.get_tipo_display }}</span>
+              </p>
+              {% if solicitud.mascota %}
+              <p class="mb-2">
+                <strong>Mascota:</strong> 
+                <a href="{% url 'mascota:detalle' solicitud.mascota.pk %}">{{ solicitud.mascota.nombre }}</a>
+              </p>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <p class="mb-2">
+                <strong>Creada:</strong> {{ solicitud.creada_en|date:"d/m/Y H:i" }}
+              </p>
+              <p class="mb-2">
+                <strong>Actualizada:</strong> {{ solicitud.actualizada_en|date:"d/m/Y H:i" }}
+              </p>
+              {% if solicitud.resuelta_en %}
+              <p class="mb-2">
+                <strong>Resuelta:</strong> {{ solicitud.resuelta_en|date:"d/m/Y H:i" }}
+              </p>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Descripción -->
+          <hr>
+          <h6 class="text-muted">Descripción de la solicitud</h6>
+          <div class="bg-light p-3 rounded mb-3">
+            {{ solicitud.descripcion|linebreaks }}
+          </div>
+
+          <!-- Archivo adjunto -->
+          {% if solicitud.archivo_adjunto %}
+          <div class="mb-3">
+            <h6 class="text-muted">Archivo adjunto</h6>
+            <a href="{{ solicitud.archivo_adjunto.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+              <i class="bi bi-download"></i> Descargar archivo
+            </a>
+          </div>
+          {% endif %}
+
+          <!-- Respuesta actual del admin -->
+          {% if solicitud.respuesta_admin %}
+          <hr>
+          <h6 class="text-success">Respuesta del administrador</h6>
+          <div class="alert alert-success">
+            {{ solicitud.respuesta_admin|linebreaks }}
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna lateral: Acciones -->
+    <div class="col-lg-4">
+      
+      <!-- Estado actual -->
+      <div class="card shadow-sm mb-3">
+        <div class="card-header">
+          <h6 class="mb-0">Estado actual</h6>
+        </div>
+        <div class="card-body text-center">
+          {% if solicitud.estado == 'PENDIENTE' %}
+            <h3><span class="badge bg-warning text-dark">Pendiente</span></h3>
+          {% elif solicitud.estado == 'EN_REVISION' %}
+            <h3><span class="badge bg-info">En Revisión</span></h3>
+          {% elif solicitud.estado == 'RESUELTA' %}
+            <h3><span class="badge bg-success">Resuelta</span></h3>
+          {% else %}
+            <h3><span class="badge bg-danger">Rechazada</span></h3>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Cambiar prioridad -->
+      <div class="card shadow-sm mb-3">
+        <div class="card-header">
+          <h6 class="mb-0">Prioridad</h6>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="cambiar_prioridad">
+            <select name="prioridad" class="form-select mb-2">
+              <option value="BAJA" {% if solicitud.prioridad == 'BAJA' %}selected{% endif %}>Baja</option>
+              <option value="MEDIA" {% if solicitud.prioridad == 'MEDIA' %}selected{% endif %}>Media</option>
+              <option value="ALTA" {% if solicitud.prioridad == 'ALTA' %}selected{% endif %}>Alta</option>
+              <option value="URGENTE" {% if solicitud.prioridad == 'URGENTE' %}selected{% endif %}>Urgente</option>
+            </select>
+            <button type="submit" class="btn btn-sm btn-primary w-100">Cambiar prioridad</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Acciones rápidas -->
+      {% if solicitud.estado == 'PENDIENTE' or solicitud.estado == 'EN_REVISION' %}
+      <div class="card shadow-sm mb-3">
+        <div class="card-header">
+          <h6 class="mb-0">Acciones rápidas</h6>
+        </div>
+        <div class="card-body">
+          {% if solicitud.estado == 'PENDIENTE' %}
+          <form method="post" class="mb-2">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="marcar_en_revision">
+            <button type="submit" class="btn btn-info w-100">
+              <i class="bi bi-eye"></i> Marcar "En revisión"
+            </button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Responder solicitud -->
+      {% if solicitud.estado != 'RESUELTA' and solicitud.estado != 'RECHAZADA' %}
+      <div class="card shadow-sm border-success">
+        <div class="card-header bg-success text-white">
+          <h6 class="mb-0">Responder solicitud</h6>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label">Respuesta</label>
+              <textarea name="respuesta_admin" class="form-control" rows="5" 
+                        placeholder="Escribe tu respuesta..." required></textarea>
+            </div>
+            
+            <div class="d-grid gap-2">
+              <button type="submit" name="accion" value="resolver" class="btn btn-success">
+                <i class="bi bi-check-circle"></i> Resolver solicitud
+              </button>
+              <button type="submit" name="accion" value="rechazar" class="btn btn-danger">
+                <i class="bi bi-x-circle"></i> Rechazar solicitud
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -12,7 +12,6 @@ class SolicitudAdmin(admin.ModelAdmin):
     list_filter = ('estado', 'prioridad', 'tipo', 'creada_en')
     search_fields = ('asunto', 'descripcion', 'usuario__username', 'usuario__email')
     readonly_fields = ('creada_en', 'actualizada_en', 'resuelta_en')
-    date_hierarchy = 'creada_en'
 
     fieldsets = (
         ('Información General', {

@@ -9,7 +9,7 @@ from django.db.models.functions import ExtractMonth, ExtractYear, ExtractWeek, E
 from django.utils import timezone
 from datetime import timedelta, datetime
 from collections import defaultdict
-
+from django.views.generic import DetailView
 from panel.services import notificar_vet
 from cuentas.models import Perfil
 from cuentas.mixins import SoloStaffMixin
@@ -431,6 +431,46 @@ class VetsPendientesListView(SoloStaffMixin, ListView):
             .order_by("-id")
         )
 
+class SolicitudGestionView(SoloStaffMixin, DetailView):
+    """Vista para gestionar una solicitud desde el panel web"""
+    model = Solicitud
+    template_name = "panel/solicitud_gestionar.html"
+    context_object_name = "solicitud"
+
+    def post(self, request, *args, **kwargs):
+        solicitud = self.get_object()
+        accion = request.POST.get('accion')
+        
+        if accion == 'marcar_en_revision':
+            solicitud.marcar_en_revision()
+            messages.success(request, f'Solicitud #{solicitud.id} marcada como "En revisión"')
+        
+        elif accion == 'resolver':
+            respuesta = request.POST.get('respuesta_admin', '').strip()
+            if respuesta:
+                solicitud.respuesta_admin = respuesta
+                solicitud.marcar_resuelta()
+                messages.success(request, f'Solicitud #{solicitud.id} resuelta correctamente')
+            else:
+                messages.error(request, 'Debes escribir una respuesta para resolver la solicitud')
+        
+        elif accion == 'rechazar':
+            respuesta = request.POST.get('respuesta_admin', '').strip()
+            if respuesta:
+                solicitud.respuesta_admin = respuesta
+                solicitud.marcar_rechazada()
+                messages.warning(request, f'Solicitud #{solicitud.id} rechazada')
+            else:
+                messages.error(request, 'Debes escribir una respuesta para rechazar la solicitud')
+        
+        elif accion == 'cambiar_prioridad':
+            nueva_prioridad = request.POST.get('prioridad')
+            if nueva_prioridad in ['BAJA', 'MEDIA', 'ALTA', 'URGENTE']:
+                solicitud.prioridad = nueva_prioridad
+                solicitud.save()
+                messages.info(request, f'Prioridad cambiada a {solicitud.get_prioridad_display()}')
+        
+        return redirect('panel:solicitud_gestionar', pk=solicitud.pk)    
 
 @user_passes_test(es_staff)
 def aprobar_vet(request, perfil_id):
