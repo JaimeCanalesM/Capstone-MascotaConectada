@@ -53,6 +53,24 @@
     footer small {
       color: white !important;
     }
+
+    /* Responsive navbar - evitar superposición */
+    @media (max-width: 991px) {
+      .navbar-brand {
+        font-size: 1.1rem;
+        max-width: calc(100% - 60px);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .navbar-brand {
+        font-size: 1rem;
+        max-width: calc(100% - 60px);
+      }
+    }
   </style>
 </head>
 
@@ -104,7 +122,7 @@
         <ul class="navbar-nav ms-auto">
           {% if user.is_authenticated %}
           <li class="nav-item">
-            <span class="nav-link">
+            <span class="nav-link d-none d-lg-block">
               Hola, {{ user.get_full_name|default:user.username }}
               {% with p=user.perfil %}
               {% if p %}
@@ -123,6 +141,9 @@
               {% endif %}
               {% endif %}
               {% endwith %}
+            </span>
+            <span class="nav-link d-lg-none">
+              {{ user.get_full_name|default:user.username|truncatechars:15 }}
             </span>
           </li>
           <li class="nav-item"><a class="nav-link" href="{% url 'cuentas:perfil' %}">Mi perfil</a></li>

@@ -137,21 +137,21 @@ class CitaUpdate(LoginRequiredMixin, UpdateView):
     template_name = "citas/form.html"
     success_url = reverse_lazy("citas:lista")
 
+    def dispatch(self, request, *args, **kwargs):
+        # Solo administradores pueden editar citas
+        if not (request.user.is_staff or request.user.is_superuser):
+            messages.error(request, "No tienes permisos para editar citas.")
+            return redirect("citas:lista")
+        return super().dispatch(request, *args, **kwargs)
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
 
     def get_queryset(self):
-        user = self.request.user
-        perfil = getattr(user, "perfil", None)
-        qs = super().get_queryset()
-        
-        if perfil and perfil.rol == "VET":
-            return qs.filter(veterinario=user)
-        elif not (user.is_staff or user.is_superuser):
-            return qs.filter(dueno=user)
-        return qs
+        # Administradores pueden editar cualquier cita
+        return super().get_queryset()
 
 
 class CitaDelete(LoginRequiredMixin, DeleteView):
@@ -159,16 +159,16 @@ class CitaDelete(LoginRequiredMixin, DeleteView):
     template_name = "citas/confirm_delete.html"
     success_url = reverse_lazy("citas:lista")
 
+    def dispatch(self, request, *args, **kwargs):
+        # Solo administradores pueden eliminar citas
+        if not (request.user.is_staff or request.user.is_superuser):
+            messages.error(request, "No tienes permisos para eliminar citas.")
+            return redirect("citas:lista")
+        return super().dispatch(request, *args, **kwargs)
+
     def get_queryset(self):
-        user = self.request.user
-        perfil = getattr(user, "perfil", None)
-        qs = super().get_queryset()
-        
-        if perfil and perfil.rol == "VET":
-            return qs.filter(veterinario=user)
-        elif not (user.is_staff or user.is_superuser):
-            return qs.filter(dueno=user)
-        return qs
+        # Administradores pueden eliminar cualquier cita
+        return super().get_queryset()
 
 
 class CitaCompletar(LoginRequiredMixin, View):

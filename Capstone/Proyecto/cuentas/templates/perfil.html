@@ -46,7 +46,7 @@
               {% endif %}
             </div>
             <div class="col-auto">
-              <a href="{% url 'cuentas:editar_perfil' %}" class="btn btn-primary">
+              <a href="{% url 'cuentas:editar_perfil' %}" class="btn btn-success">
                 <i class="bi bi-pencil-square"></i> Editar Perfil
               </a>
             </div>
@@ -271,13 +271,13 @@
               {% endif %}
 
               {% if user.perfil.rol == "DUENO" and not user.is_staff and not user.is_superuser %}
-                <a href="{% url 'mascota:lista' %}" class="btn btn-primary">
+                <a href="{% url 'mascota:lista' %}" class="btn btn-success">
                   Ver Mis Mascotas
                 </a>
                 <a href="{% url 'mascota:crear' %}" class="btn btn-success">
                   Registrar Nueva Mascota
                 </a>
-                <a href="{% url 'solicitudes:lista' %}" class="btn btn-outline-primary">
+                <a href="{% url 'solicitudes:lista' %}" class="btn btn-outline-success">
                   Mis Solicitudes
                 </a>
                 <a href="{% url 'solicitudes:crear' %}" class="btn btn-outline-success">

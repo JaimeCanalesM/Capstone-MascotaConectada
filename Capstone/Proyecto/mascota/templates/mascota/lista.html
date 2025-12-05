@@ -46,7 +46,7 @@
               </select>
             </div>
             <div class="col-md-1 d-flex align-items-end">
-              <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+              <button type="submit" class="btn btn-success w-100">Filtrar</button>
             </div>
           </div>
         </form>
@@ -117,12 +117,12 @@
             <div class="card-footer bg-light">
               {% if es_admin_o_vet %}
                 <!-- Admin/Vet solo pueden ver detalles -->
-                <a class="btn btn-sm btn-outline-primary w-100" href="{% url 'mascota:detalle' m.id %}">
+                <a class="btn btn-sm btn-outline-success w-100" href="{% url 'mascota:detalle' m.id %}">
                   Ver Detalles
                 </a>
               {% else %}
                 <!-- Dueños solo pueden ver -->
-                <a class="btn btn-sm btn-outline-primary w-100" href="{% url 'mascota:detalle' m.id %}">
+                <a class="btn btn-sm btn-outline-success w-100" href="{% url 'mascota:detalle' m.id %}">
                   Ver Detalles
                 </a>
                 <small class="text-muted d-block mt-2 text-center">
@@ -173,7 +173,7 @@
       <i class="bi bi-inbox" style="font-size: 3rem;"></i>
       <p class="mt-3 mb-0">
         <strong>No tienes mascotas registradas.</strong><br>
-        <a href="{% url 'mascota:crear' %}" class="btn btn-primary btn-sm mt-2">
+        <a href="{% url 'mascota:crear' %}" class="btn btn-success btn-sm mt-2">
           Registra tu primera mascota
         </a>
       </p>

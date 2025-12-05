@@ -1,7 +1,7 @@
-{% extends "base.html" %}
+{% extends "panel/panel_base.html" %}
 {% block titulo %}Solicitud #{{ solicitud.id }} - Panel Admin{% endblock %}
 
-{% block contenido %}
+{% block panel_content %}
 <div class="container my-4">
 
   <div class="row justify-content-center">
@@ -210,4 +210,4 @@
   </div>
 
 </div>
-{% endblock %}
+{% endblock panel_content %}
