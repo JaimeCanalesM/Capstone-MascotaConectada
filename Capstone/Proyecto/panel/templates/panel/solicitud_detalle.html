@@ -60,7 +60,7 @@
                 <div class="mb-3">
                   <label class="text-muted small mb-1">Archivo Adjunto</label>
                   <p class="mb-0">
-                    <a href="{{ solicitud.archivo_adjunto.url }}" class="btn btn-sm btn-outline-primary" download>
+                    <a href="{{ solicitud.archivo_adjunto.url }}" class="btn btn-sm btn-outline-success" download>
                       Descargar Archivo
                     </a>
                   </p>
@@ -187,13 +187,13 @@
           </div>
 
           <!-- Actions -->
-          <div class="card shadow-sm border-primary">
-            <div class="card-header bg-primary text-white">
+          <div class="card shadow-sm border-success">
+            <div class="card-header bg-success text-white">
               <h6 class="mb-0">Acciones</h6>
             </div>
             <div class="card-body">
               <p class="small mb-3">Para gestionar esta solicitud (cambiar estado, agregar respuesta, modificar prioridad), usa el Django Admin:</p>
-              <a href="/admin/solicitudes/solicitud/{{ solicitud.pk }}/change/" class="btn btn-primary w-100 mb-2" target="_blank">
+              <a href="/admin/solicitudes/solicitud/{{ solicitud.pk }}/change/" class="btn btn-success w-100 mb-2" target="_blank">
                 Abrir en Django Admin
               </a>
               <a href="{% url 'panel:solicitudes_lista' %}" class="btn btn-outline-secondary w-100">

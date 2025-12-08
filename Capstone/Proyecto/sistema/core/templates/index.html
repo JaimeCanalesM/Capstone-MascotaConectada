@@ -10,7 +10,7 @@
   <div class="row align-items-center">
     <div class="col-lg-6">
       <h1 class="display-5 fw-bold">
-        Tu mascota, <span class="text-primary">conectada</span> a su salud
+        Tu mascota, <span class="text-success">conectada</span> a su salud
       </h1>
       <p class="lead text-muted mt-3">
         Agenda citas, guarda historial médico, encuentra clínicas cercanas y recibe recordatorios — todo en un solo lugar.
@@ -18,10 +18,10 @@
 
       <div class="d-flex flex-wrap gap-2 mt-4">
         <!-- Ajusta los nombres de URL según tus rutas -->
-        <a href="{% url 'mascota:crear' %}" class="btn btn-primary btn-lg">
+        <a href="{% url 'mascota:crear' %}" class="btn btn-success btn-lg">
           <i class="bi bi-journal-plus"></i> Registrar Mascota
         </a>
-        <a href="{% url 'clinicas:lista' %}" class="btn btn-outline-primary btn-lg">
+        <a href="{% url 'clinicas:lista' %}" class="btn btn-outline-success btn-lg">
           <i class="bi bi-geo-alt"></i> Buscar Clínicas
         </a>
         {% if not request.user.is_authenticated %}
@@ -93,7 +93,7 @@
     <h2 class="fw-bold mb-3">Listo para empezar</h2>
     <p class="text-muted mb-4">Toma el control del cuidado de tu mascota con unos pocos clics.</p>
     <div class="d-flex justify-content-center gap-2">
-      <a href="{% url 'mascota:crear' %}" class="btn btn-primary btn-lg">
+      <a href="{% url 'mascota:crear' %}" class="btn btn-success btn-lg">
         <i class="bi bi-plus-circle"></i> Añadir a mi mascota
       </a>
       <a href="{% url 'core:contacto' %}" class="btn btn-outline-secondary btn-lg">

@@ -15,7 +15,7 @@
     <button class="btn btn-outline-secondary" type="submit">Buscar</button>
   </div>
   <div class="col-auto">
-    <button class="btn btn-primary" type="button" id="btnUbicarme">
+    <button class="btn btn-success" type="button" id="btnUbicarme">
       📍 Ubicarme
     </button>
   </div>
@@ -56,7 +56,7 @@
           </div>
           <div class="card-footer">
             <div class="d-flex gap-2">
-              <a href="{% url 'clinicas:detalle' c.pk %}" class="btn btn-sm btn-outline-primary flex-fill">Ver detalle</a>
+              <a href="{% url 'clinicas:detalle' c.pk %}" class="btn btn-sm btn-outline-success flex-fill">Ver detalle</a>
               {% if c.lat and c.lng %}
                 <a href="https://www.google.com/maps/dir/?api=1&destination={{ c.lat }},{{ c.lng }}"
                    target="_blank"
@@ -138,11 +138,11 @@ function initMap() {
 
       // Resaltar tarjeta correspondiente
       document.querySelectorAll('[data-clinica-id]').forEach(el => {
-        el.classList.remove('border-primary');
+        el.classList.remove('border-success');
       });
       const card = document.querySelector(`[data-clinica-id="${clinica.id}"]`);
       if (card) {
-        card.classList.add('border-primary');
+        card.classList.add('border-success');
         card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     });
@@ -233,7 +233,7 @@ function calcularDistancias(userPos) {
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <h5 class="card-title mb-0">${clinica.nombre}</h5>
-              <span class="badge bg-primary">${clinica.distancia.toFixed(1)} km</span>
+              <span class="badge bg-success">${clinica.distancia.toFixed(1)} km</span>
             </div>
             <p class="card-text">
               <small class="text-muted">
@@ -244,7 +244,7 @@ function calcularDistancias(userPos) {
           </div>
           <div class="card-footer">
             <div class="d-flex gap-2">
-              <a href="/clinicas/${clinica.id}/" class="btn btn-sm btn-outline-primary flex-fill">Ver detalle</a>
+              <a href="/clinicas/${clinica.id}/" class="btn btn-sm btn-outline-success flex-fill">Ver detalle</a>
               <a href="https://www.google.com/maps/dir/?api=1&destination=${clinica.lat},${clinica.lng}"
                  target="_blank"
                  class="btn btn-sm btn-success flex-fill">
