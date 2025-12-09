@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recordatorio de Cita - MascotaConectada</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #27d88b 0%, #1fa876 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .info-row {
+            display: flex;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #666;
+            min-width: 140px;
+        }
+        .info-value {
+            color: #333;
+            flex: 1;
+        }
+        .highlight-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .datetime-box {
+            background: #27d88b;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .datetime-box .date {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .datetime-box .time {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        .mascota-info {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .mascota-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+        .button {
+            display: inline-block;
+            background: #27d88b;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .tips {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .tips h4 {
+            color: #1976d2;
+            margin-top: 0;
+        }
+        .tips ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="icon"></div>
+        <h1>Recordatorio de Cita Veterinaria</h1>
+        <p style="margin: 5px 0 0 0;">¡Mañana tienes una cita programada!</p>
+    </div>
+
+    <div class="content">
+        <p>Hola <strong>{{ nombre_dueno }}</strong>,</p>
+
+        <p>Te recordamos que <strong>mañana</strong> tienes una cita agendada para tu mascota en MascotaConectada.</p>
+
+        <!-- Información de la Mascota -->
+        <div class="mascota-info">
+            <div class="mascota-name"> {{ nombre_mascota }}</div>
+            <div style="color: #555; margin-top: 5px;">{{ especie_mascota }}</div>
+        </div>
+
+        <!-- Fecha y Hora -->
+        <div class="datetime-box">
+            <div class="date"> {{ fecha_hora|date:"l, d 'de' F 'de' Y" }}</div>
+            <div class="time"> {{ fecha_hora|time:"H:i" }} hrs</div>
+        </div>
+
+        <!-- Detalles de la Cita -->
+        <div class="card">
+            <h3 style="margin-top: 0; color: #27d88b;"> Detalles de la Cita</h3>
+
+            <div class="info-row">
+                <div class="info-label">Motivo:</div>
+                <div class="info-value"><strong>{{ motivo }}</strong></div>
+            </div>
+
+            {% if notas %}
+            <div class="info-row">
+                <div class="info-label">Notas:</div>
+                <div class="info-value">{{ notas }}</div>
+            </div>
+            {% endif %}
+
+            <div class="info-row">
+                <div class="info-label">Estado:</div>
+                <div class="info-value">
+                    <span style="background: #28a745; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px;">
+                        {{ estado }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-label">Veterinario:</div>
+                <div class="info-value">{{ veterinario }}</div>
+            </div>
+        </div>
+
+        <!-- Información de la Clínica -->
+        <div class="card">
+            <h3 style="margin-top: 0; color: #27d88b;"> Clínica</h3>
+
+            <div class="info-row">
+                <div class="info-label">Nombre:</div>
+                <div class="info-value"><strong>{{ clinica }}</strong></div>
+            </div>
+
+            {% if direccion_clinica %}
+            <div class="info-row">
+                <div class="info-label">Dirección:</div>
+                <div class="info-value">{{ direccion_clinica }}</div>
+            </div>
+            {% endif %}
+
+            {% if telefono_clinica %}
+            <div class="info-row">
+                <div class="info-label">Teléfono:</div>
+                <div class="info-value">{{ telefono_clinica }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Consejos -->
+        <div class="tips">
+            <h4> Consejos para la cita:</h4>
+            <ul>
+                <li>Llega 10-15 minutos antes de la hora agendada</li>
+                <li>Lleva la cartilla de vacunación de {{ nombre_mascota }}</li>
+                <li>Si tu mascota toma medicamentos, lleva la lista actualizada</li>
+                <li>Ten a mano cualquier documento médico previo relevante</li>
+                <li>Mantén a {{ nombre_mascota }} con correa o transportador</li>
+            </ul>
+        </div>
+
+        <div class="highlight-box">
+            <strong> ¿Necesitas cancelar o reprogramar?</strong><br>
+            Por favor, contacta a la clínica con anticipación para avisar cualquier cambio.
+        </div>
+
+        <p style="text-align: center; margin-top: 30px;">
+            <strong>Nos vemos mañana. ¡{{ nombre_mascota }} está en buenas manos! 🐾</strong>
+        </p>
+
+        <div class="footer">
+            <p>Este es un correo automático de recordatorio.</p>
+            <p>&copy; 2025 MascotaConectada - Cuidando la salud de tu mascota</p>
+        </div>
+    </div>
+</body>
+</html>

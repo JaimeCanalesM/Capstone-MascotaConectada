@@ -90,7 +90,7 @@ class Cita(models.Model):
         Validación de dominio:
         - No comparar si 'fecha_hora' es None (evita TypeError).
         - Si es naive y USE_TZ=True, volverla aware con la tz actual.
-        - Debe ser futura.
+        - Debe ser futura (excepto si el estado es COMPLETADA).
         """
         from django.core.exceptions import ValidationError
         from django.utils.timezone import is_naive, make_aware, get_current_timezone
@@ -106,6 +106,7 @@ class Cita(models.Model):
         if is_naive(self.fecha_hora):
             self.fecha_hora = make_aware(self.fecha_hora, get_current_timezone())
 
-        # Validar que sea futura
-        if self.fecha_hora < timezone.now():
-            raise ValidationError("La fecha/hora debe ser futura.")
+        # Validar que sea futura SOLO si el estado NO es COMPLETADA
+        if self.estado != self.COMPLETADA:
+            if self.fecha_hora < timezone.now():
+                raise ValidationError("La fecha/hora debe ser futura.")

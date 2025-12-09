@@ -1,56 +1,346 @@
 {% extends "base.html" %}
-{% block titulo %}Mi perfil{% endblock %}
+{% block titulo %}Mi Perfil{% endblock %}
 
 {% block contenido %}
 <div class="container my-4">
-  <h1 class="h4 mb-3">Mi perfil</h1>
 
+  <!-- Header Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              {% if user.perfil.foto_perfil %}
+                <img src="{{ user.perfil.foto_perfil.url }}"
+                     alt="Foto de perfil de {{ user.get_full_name|default:user.username }}"
+                     class="rounded-circle border border-3 border-success shadow-sm"
+                     style="width: 100px; height: 100px; object-fit: cover;">
+              {% else %}
+                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                     style="width: 100px; height: 100px; font-size: 2.5rem; font-weight: bold;">
+                  {{ user.first_name|slice:":1"|upper|default:"U" }}{{ user.last_name|slice:":1"|upper|default:"" }}
+                </div>
+              {% endif %}
+            </div>
+            <div class="col">
+              <h2 class="mb-1">{{ user.get_full_name|default:user.username }}</h2>
+              <p class="text-muted mb-2">{{ user.email }}</p>
+              {% if user.perfil %}
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                  {% if user.is_staff or user.is_superuser %}
+                    <span class="badge bg-danger">Administrador</span>
+                  {% else %}
+                    <span class="badge bg-success">{{ user.perfil.get_rol_display }}</span>
+                  {% endif %}
+                  {% if user.perfil.rol == "VET" %}
+                    {% if user.perfil.vet_estado == "APROBADO" %}
+                      <span class="badge bg-success">Veterinario Aprobado</span>
+                    {% elif user.perfil.vet_estado == "RECHAZADO" %}
+                      <span class="badge bg-danger">Veterinario Rechazado</span>
+                    {% else %}
+                      <span class="badge bg-warning text-dark">Veterinario Pendiente</span>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              {% endif %}
+            </div>
+            <div class="col-auto">
+              <a href="{% url 'cuentas:editar_perfil' %}" class="btn btn-success">
+                <i class="bi bi-pencil-square"></i> Editar Perfil
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Section -->
+  {% if estadisticas %}
+    <div class="row g-3 mb-4">
+      {% if user.is_staff or user.is_superuser %}
+        <!-- Admin Statistics -->
+        <div class="col-md-4">
+          <div class="card border-success h-100">
+            <div class="card-body text-center">
+              <h3 class="text-success mb-2">{{ estadisticas.total_usuarios }}</h3>
+              <p class="text-muted mb-0">Total Usuarios</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-success h-100">
+            <div class="card-body text-center">
+              <h3 class="text-success mb-2">{{ estadisticas.total_mascotas }}</h3>
+              <p class="text-muted mb-0">Total Mascotas</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-warning h-100">
+            <div class="card-body text-center">
+              <h3 class="text-warning mb-2">{{ estadisticas.solicitudes_pendientes }}</h3>
+              <p class="text-muted mb-0">Solicitudes Pendientes</p>
+            </div>
+          </div>
+        </div>
+
+      {% elif user.perfil.rol == "DUENO" %}
+        <!-- Dueño Statistics -->
+        <div class="col-md-3">
+          <div class="card border-success h-100">
+            <div class="card-body text-center">
+              <h3 class="text-success mb-2">{{ estadisticas.mascotas }}</h3>
+              <p class="text-muted mb-0">Mascotas Registradas</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card border-success h-100">
+            <div class="card-body text-center">
+              <h3 class="text-success mb-2">{{ estadisticas.citas_proximas }}</h3>
+              <p class="text-muted mb-0">Citas Próximas</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card border-warning h-100">
+            <div class="card-body text-center">
+              <h3 class="text-warning mb-2">{{ estadisticas.solicitudes_pendientes }}</h3>
+              <p class="text-muted mb-0">Solicitudes Pendientes</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card border-secondary h-100">
+            <div class="card-body text-center">
+              <h3 class="text-secondary mb-2">{{ estadisticas.solicitudes_totales }}</h3>
+              <p class="text-muted mb-0">Total Solicitudes</p>
+            </div>
+          </div>
+        </div>
+
+      {% elif user.perfil.rol == "VET" %}
+        <!-- Veterinario Statistics -->
+        <div class="col-md-4">
+          <div class="card border-success h-100">
+            <div class="card-body text-center">
+              <h3 class="text-success mb-2">{{ estadisticas.citas_completadas }}</h3>
+              <p class="text-muted mb-0">Citas Completadas</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-success h-100">
+            <div class="card-body text-center">
+              <h3 class="text-success mb-2">{{ estadisticas.citas_proximas }}</h3>
+              <p class="text-muted mb-0">Citas Próximas</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-success h-100">
+            <div class="card-body text-center">
+              <h3 class="text-success mb-2">{{ estadisticas.mascotas_atendidas }}</h3>
+              <p class="text-muted mb-0">Mascotas Atendidas</p>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <!-- Main Content -->
   <div class="row g-4">
-    <div class="col-md-5">
-      <div class="card">
+
+    <!-- Left Column: User Information -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0">Información Personal</h5>
+        </div>
         <div class="card-body">
-          <h5 class="card-title mb-3">Datos de usuario</h5>
-          <p class="mb-1"><strong>Usuario:</strong> {{ user.username }}</p>
-          <p class="mb-1"><strong>Correo:</strong> {{ user.email }}</p>
-          <p class="mb-1"><strong>Nombre:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+          <div class="mb-3">
+            <label class="text-muted small mb-1">Nombre de Usuario</label>
+            <p class="mb-0 fw-semibold">{{ user.username }}</p>
+          </div>
+          <hr>
+          <div class="mb-3">
+            <label class="text-muted small mb-1">Nombre Completo</label>
+            <p class="mb-0 fw-semibold">
+              {% if user.first_name or user.last_name %}
+                {{ user.first_name }} {{ user.last_name }}
+              {% else %}
+                <span class="text-muted">No especificado</span>
+              {% endif %}
+            </p>
+          </div>
+          <hr>
+          <div class="mb-3">
+            <label class="text-muted small mb-1">Correo Electrónico</label>
+            <p class="mb-0 fw-semibold">{{ user.email }}</p>
+          </div>
+          <hr>
+          <div class="mb-0">
+            <label class="text-muted small mb-1">Fecha de Registro</label>
+            <p class="mb-0 fw-semibold">{{ user.date_joined|date:"d/m/Y H:i" }}</p>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="col-md-7">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title mb-3">Rol en el sistema</h5>
+    <!-- Right Column: Professional Info (VET) / Quick Actions -->
+    <div class="col-lg-6">
+      {% if user.perfil and user.perfil.rol == "VET" %}
+        <!-- Información Profesional del Veterinario -->
+        <div class="card shadow-sm h-100">
+          <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0">Información Profesional</h5>
+          </div>
+          <div class="card-body">
+            {% if user.perfil.vet_rut %}
+              <div class="mb-3">
+                <label class="text-muted small mb-1">RUT</label>
+                <p class="mb-0 fw-semibold">{{ user.perfil.vet_rut }}</p>
+              </div>
+              <hr>
+            {% endif %}
 
-          {% if user.perfil %}
-            <p class="mb-1"><strong>Rol:</strong> {{ user.perfil.get_rol_display }}</p>
+            {% if user.perfil.vet_registro %}
+              <div class="mb-3">
+                <label class="text-muted small mb-1">Registro Profesional</label>
+                <p class="mb-0 fw-semibold">{{ user.perfil.vet_registro }}</p>
+              </div>
+              <hr>
+            {% endif %}
 
-            {% if user.perfil.rol == "VET" %}
-              <p class="mb-1">
-                <strong>Estado veterinario:</strong>
+            {% if user.perfil.vet_clinica %}
+              <div class="mb-3">
+                <label class="text-muted small mb-1">Clínica / Centro</label>
+                <p class="mb-0 fw-semibold">{{ user.perfil.vet_clinica }}</p>
+              </div>
+              <hr>
+            {% endif %}
+
+            <div class="mb-3">
+              <label class="text-muted small mb-1">Estado de Aprobación</label>
+              <p class="mb-0">
                 {% if user.perfil.vet_estado == "APROBADO" %}
-                  <span class="badge text-bg-success">Aprobado</span>
+                  <span class="badge bg-success">Aprobado</span>
+                  <small class="d-block text-muted mt-1">Tu cuenta de veterinario ha sido verificada y aprobada</small>
                 {% elif user.perfil.vet_estado == "RECHAZADO" %}
-                  <span class="badge text-bg-danger">Rechazado</span>
+                  <span class="badge bg-danger">Rechazado</span>
+                  <small class="d-block text-muted mt-1">Tu solicitud fue rechazada. Contacta con el administrador</small>
                 {% else %}
-                  <span class="badge text-bg-warning">Pendiente</span>
+                  <span class="badge bg-warning text-dark">Pendiente de Aprobación</span>
+                  <small class="d-block text-muted mt-1">Un administrador está revisando tu solicitud</small>
                 {% endif %}
               </p>
+            </div>
+
+            {% if user.perfil.licencia_medica %}
+              <hr>
+              <div class="mb-0">
+                <label class="text-muted small mb-1">Licencia Médica</label>
+                <p class="mb-0">
+                  <a href="{{ user.perfil.licencia_medica.url }}" class="btn btn-sm btn-outline-success" target="_blank">
+                    Ver Documento
+                  </a>
+                </p>
+              </div>
             {% endif %}
-          {% else %}
-            <p class="text-muted mb-0">No hay perfil asociado todavía.</p>
-          {% endif %}
+          </div>
+        </div>
+
+      {% else %}
+        <!-- Quick Actions Card -->
+        <div class="card shadow-sm h-100">
+          <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0">Acciones Rápidas</h5>
+          </div>
+          <div class="card-body">
+            <div class="d-grid gap-3">
+              {% if user.is_staff or user.is_superuser %}
+                <a href="{% url 'panel:dashboard' %}" class="btn btn-warning text-dark">
+                  <strong>Ir al Panel de Administración</strong>
+                </a>
+                <a href="/admin/" class="btn btn-outline-secondary">
+                  Panel Django Admin
+                </a>
+              {% endif %}
+
+              {% if user.perfil.rol == "DUENO" and not user.is_staff and not user.is_superuser %}
+                <a href="{% url 'mascota:lista' %}" class="btn btn-success">
+                  Ver Mis Mascotas
+                </a>
+                <a href="{% url 'mascota:crear' %}" class="btn btn-success">
+                  Registrar Nueva Mascota
+                </a>
+                <a href="{% url 'solicitudes:lista' %}" class="btn btn-outline-success">
+                  Mis Solicitudes
+                </a>
+                <a href="{% url 'solicitudes:crear' %}" class="btn btn-outline-success">
+                  Nueva Solicitud
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Additional Info for Admins -->
+  {% if user.is_staff or user.is_superuser %}
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card shadow-sm border-warning">
+          <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">Panel de Administración</h5>
+          </div>
+          <div class="card-body">
+            <p class="mb-3">Como administrador, tienes acceso a funcionalidades especiales del sistema:</p>
+            <div class="row">
+              <div class="col-md-4 mb-2">
+                <strong>Gestión de Usuarios:</strong>
+                <ul class="small mb-0">
+                  <li>Aprobar veterinarios</li>
+                  <li>Gestionar perfiles</li>
+                  <li>Asignar permisos</li>
+                </ul>
+              </div>
+              <div class="col-md-4 mb-2">
+                <strong>Gestión de Mascotas:</strong>
+                <ul class="small mb-0">
+                  <li>Ver todas las mascotas</li>
+                  <li>Editar información</li>
+                  <li>Revisar historiales</li>
+                </ul>
+              </div>
+              <div class="col-md-4 mb-2">
+                <strong>Gestión de Solicitudes:</strong>
+                <ul class="small mb-0">
+                  <li>Responder solicitudes</li>
+                  <li>Aprobar cambios</li>
+                  <li>Gestionar prioridades</li>
+                </ul>
+              </div>
+            </div>
+            <div class="mt-3">
+              <a href="{% url 'panel:dashboard' %}" class="btn btn-warning text-dark me-2">
+                Ir al Panel de Administración
+              </a>
+              <a href="/admin/" class="btn btn-outline-secondary">
+                Django Admin
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  {% endif %}
 
-  <div class="mt-4">
-    {% if user.is_authenticated %}
-      {% if user.is_staff or user.is_superuser %}
-        <a href="{% url 'panel:dashboard' %}" class="btn btn-outline-primary btn-sm">Ir al panel de administración</a>
-      {% endif %}
-    {% endif %}
-  </div>
 </div>
 {% endblock %}

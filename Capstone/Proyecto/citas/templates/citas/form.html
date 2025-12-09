@@ -44,7 +44,7 @@
                 <strong>Fecha y hora *</strong>
               </label>
               {{ form.fecha_hora }}
-              <small class="text-muted d-block mt-2">Debe ser una fecha y hora futura</small>
+              <small class="text-muted d-block mt-2">Debe ser una fecha y hora futura (o pasada si marca la cita como completada)</small>
               {% if form.fecha_hora.errors %}
                 <div class="alert alert-danger small mt-1">{{ form.fecha_hora.errors.0 }}</div>
               {% endif %}
@@ -68,6 +68,26 @@
               {% if form.notas.errors %}
                 <div class="alert alert-danger small mt-1">{{ form.notas.errors.0 }}</div>
               {% endif %}
+            </div>
+
+            <!-- Marcar como completada -->
+            <div class="col-12">
+              <div class="card bg-light border-success">
+                <div class="card-body">
+                  <div class="form-check">
+                    {{ form.marcar_como_completada }}
+                    <label class="form-check-label" for="{{ form.marcar_como_completada.id_for_label }}">
+                      <strong>{{ form.marcar_como_completada.label }}</strong>
+                    </label>
+                  </div>
+                  <small class="text-muted d-block mt-2">
+                    {{ form.marcar_como_completada.help_text }}
+                  </small>
+                  {% if form.marcar_como_completada.errors %}
+                    <div class="alert alert-danger small mt-2">{{ form.marcar_como_completada.errors.0 }}</div>
+                  {% endif %}
+                </div>
+              </div>
             </div>
           </div>
         </div>
