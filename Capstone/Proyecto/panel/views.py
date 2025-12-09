@@ -294,8 +294,8 @@ class DashboardView(TemplateView):
 
         # 6. VALOR PROMEDIO DEL USUARIO (citas por usuario activo)
         if usuarios_con_citas > 0:
-            total_citas = Cita.objects.count()
-            ctx['citas_promedio_usuario_activo'] = round(total_citas / usuarios_con_citas, 2)
+            total_citas_count = Cita.objects.count()
+            ctx['citas_promedio_usuario_activo'] = round(total_citas_count / usuarios_con_citas, 2)
         else:
             ctx['citas_promedio_usuario_activo'] = 0
 
@@ -397,9 +397,9 @@ class DashboardView(TemplateView):
 
         # 8. TASA DE FINALIZACIÓN DE CITAS
         # Porcentaje de citas completadas vs total de citas
-        if total_citas > 0:
+        if ctx["total_citas"] > 0:
             citas_completadas_total = Cita.objects.filter(estado="COMPLETADA").count()
-            ctx["tasa_finalizacion_citas"] = round((citas_completadas_total / total_citas) * 100, 2)
+            ctx["tasa_finalizacion_citas"] = round((citas_completadas_total / ctx["total_citas"]) * 100, 2)
         else:
             ctx["tasa_finalizacion_citas"] = 0
 

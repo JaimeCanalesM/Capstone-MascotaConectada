@@ -11,7 +11,8 @@ staticfiles/
 *.pot
 
 # Django collected static (si usas collectstatic)
-static/
+# NO ignorar static/ de las apps, solo staticfiles/
+# static/
 
 # Envs
 .env
